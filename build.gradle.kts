@@ -1,11 +1,11 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
-    kotlin("multiplatform") version "1.7.20"
-    kotlin("native.cocoapods") version "1.7.20"
+    kotlin("multiplatform") version "2.1.21"
+    kotlin("native.cocoapods") version "2.1.21"
     id("com.android.library")
-    id("io.github.luca992.multiplatform-swiftpackage") version "2.0.5-arm64"
-    id("org.jlleitschuh.gradle.ktlint") version "11.0.0"
+    id("io.github.luca992.multiplatform-swiftpackage") version "2.2.4"
+    id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
     id("org.jetbrains.kotlinx.kover") version "0.6.1"
     `maven-publish`
     signing
@@ -31,72 +31,56 @@ kover {
 }
 
 kotlin {
-    android {
+    androidTarget {
         publishAllLibraryVariants()
     }
 
-    js(BOTH) {
+    js(IR) {
         browser { }
     }
 
     val xcf = XCFramework()
-    iosSimulatorArm64 {
-        binaries.framework {
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
             baseName = MODULE_NAME
             xcf.add(this)
-        }
-    }
-    ios {
-        binaries.framework {
-            baseName = MODULE_NAME
-            xcf.add(this)
+            isStatic = true
         }
     }
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation("io.ktor:ktor-utils:2.1.3")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-            }
-        }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
-            }
+        commonMain.dependencies {
+            implementation("io.ktor:ktor-utils:3.1.3")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
         }
 
-        val jsMain by getting
-        val jsTest by getting
-
-        val iosMain by getting {}
-        val iosSimulatorArm64Main by getting
-        iosSimulatorArm64Main.dependsOn(iosMain)
-        val iosTest by getting
-        val iosSimulatorArm64Test by getting
-        iosSimulatorArm64Test.dependsOn(iosTest)
-
-        val androidMain by getting {
-            dependencies {
-                implementation("net.openid:appauth:0.11.1")
-            }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
         }
-        val androidTest by getting {
-            dependencies {
-                implementation("junit:junit:4.13.2")
-            }
+
+
+        jsMain.dependencies {}
+
+        iosMain.dependencies {}
+
+
+        androidMain.dependencies {
+            implementation("net.openid:appauth:0.11.1")
         }
     }
 }
 
 android {
-    compileSdk = 31
+    compileSdk = 35
     buildToolsVersion = "30.0.3"
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
         minSdk = 23
-        targetSdk = 31
         manifestPlaceholders += "appAuthRedirectScheme" to "dev.gitlive"
     }
     buildTypes {
