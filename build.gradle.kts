@@ -92,14 +92,13 @@ android {
             isIncludeAndroidResources = true
         }
     }
+    namespace = MODULE_PACKAGE_NAME
 }
 
 kotlin {
     cocoapods {
         ios.deploymentTarget = "7.0"
-        framework {
-            isStatic = true
-        }
+
         noPodspec()
         pod("AppAuth") {
             source = git("https://github.com/philet/AppAuth-iOS.git") {

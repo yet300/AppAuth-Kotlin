@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalForeignApi::class)
+
 package dev.gitlive.appauth
 
 import cocoapods.AppAuth.OIDAuthorizationRequest
@@ -12,9 +14,10 @@ import cocoapods.AppAuth.OIDGeneralErrorDomain
 import cocoapods.AppAuth.OIDServiceConfiguration
 import cocoapods.AppAuth.OIDTokenRequest
 import cocoapods.AppAuth.OIDTokenResponse
-import io.ktor.utils.io.errors.IOException
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.io.IOException
 import platform.Foundation.NSError
 import platform.Foundation.NSURL
 import platform.UIKit.UIViewController

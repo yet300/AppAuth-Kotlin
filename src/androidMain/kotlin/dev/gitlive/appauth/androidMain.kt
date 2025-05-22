@@ -6,12 +6,14 @@ import android.net.Uri
 import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
-import io.ktor.utils.io.errors.IOException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.io.IOException
 import net.openid.appauth.AuthorizationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
+import net.openid.appauth.TokenResponse as AndroidTokenResponse
+
 
 actual typealias AuthorizationException = AuthorizationException
 
@@ -23,7 +25,11 @@ private fun AuthorizationException.wrapIfNecessary() =
 actual typealias AuthorizationServiceContext = ContextWrapper
 
 actual class AuthorizationService private constructor(private val android: net.openid.appauth.AuthorizationService) {
-    actual constructor(context: () -> AuthorizationServiceContext) : this(net.openid.appauth.AuthorizationService(context()))
+    actual constructor(context: () -> AuthorizationServiceContext) : this(
+        net.openid.appauth.AuthorizationService(
+            context()
+        )
+    )
 
     fun bind(activityOrFragment: ActivityResultCaller) {
         launcher = activityOrFragment
@@ -58,7 +64,7 @@ actual class AuthorizationService private constructor(private val android: net.o
     actual suspend fun performTokenRequest(request: TokenRequest): TokenResponse =
         suspendCoroutine { cont ->
             android.performTokenRequest(request.android) { response, ex ->
-                response?.let { cont.resume(response) }
+                response?.let { cont.resume(TokenResponse(it)) }
                     ?: cont.resumeWithException(ex!!.wrapIfNecessary())
             }
         }
@@ -141,7 +147,18 @@ actual class TokenRequest internal constructor(internal val android: net.openid.
     )
 }
 
-actual typealias TokenResponse = net.openid.appauth.TokenResponse
+actual class TokenResponse internal constructor(
+    private val androidTokenResponse: AndroidTokenResponse
+) {
+    actual val idToken: String?
+        get() = androidTokenResponse.idToken
+
+    actual val accessToken: String?
+        get() = androidTokenResponse.accessToken
+
+    actual val refreshToken: String?
+        get() = androidTokenResponse.refreshToken
+}
 
 actual class EndSessionRequest internal constructor(internal val android: net.openid.appauth.EndSessionRequest) {
     actual constructor(
