@@ -77,7 +77,6 @@ kotlin {
 
 android {
     compileSdk = 35
-    buildToolsVersion = "30.0.3"
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
         minSdk = 23
