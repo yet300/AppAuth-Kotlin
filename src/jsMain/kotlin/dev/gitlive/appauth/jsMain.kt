@@ -30,7 +30,8 @@ actual class AuthorizationRequest actual constructor(
     clientId: String,
     scopes: List<String>,
     responseType: String,
-    redirectUri: String
+    redirectUri: String,
+    additionalParameters: Map<String, String>?
 )
 
 actual class AuthorizationResponse {

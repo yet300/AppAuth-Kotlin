@@ -75,7 +75,8 @@ actual class AuthorizationRequest private constructor(internal val ios: OIDAutho
         clientId: String,
         scopes: List<String>,
         responseType: String,
-        redirectUri: String
+        redirectUri: String,
+        additionalParameters: Map<String, String>?
     ) : this(
         OIDAuthorizationRequest(
             configuration = config.ios,
@@ -83,7 +84,7 @@ actual class AuthorizationRequest private constructor(internal val ios: OIDAutho
             scopes = scopes,
             redirectURL = NSURL.URLWithString(redirectUri)!!,
             responseType = responseType,
-            additionalParameters = null
+            additionalParameters = additionalParameters as Map<Any?, *>?,
         )
     )
 }

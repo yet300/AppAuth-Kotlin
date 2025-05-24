@@ -113,14 +113,16 @@ actual class AuthorizationRequest private constructor(internal val android: net.
         clientId: String,
         scopes: List<String>,
         responseType: String,
-        redirectUri: String
+        redirectUri: String,
+        additionalParameters: Map<String, String>?
     ) : this(
         net.openid.appauth.AuthorizationRequest.Builder(
             config.android,
             clientId,
             responseType,
-            Uri.parse(redirectUri)
+            Uri.parse(redirectUri),
         )
+            .setAdditionalParameters(additionalParameters)
             .setScopes(scopes)
             .build()
     )

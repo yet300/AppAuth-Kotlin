@@ -38,7 +38,8 @@ class AuthorizationServiceTest {
             "MyClient",
             listOf("profile"),
             "code",
-            "myapp://oauth2redirect"
+            "myapp://oauth2redirect",
+            null
         )
         withAuthorizationService { service ->
             val actual = async(Dispatchers.Main) { service.performAuthorizationRequest(request) }
@@ -58,7 +59,8 @@ class AuthorizationServiceTest {
             "MyClient",
             listOf("profile"),
             "code",
-            "myapp://oauth2redirect"
+            "myapp://oauth2redirect",
+            null
         )
         withAuthorizationService { service ->
             val response = async(Dispatchers.Main) { service.performAuthorizationRequest(request) }

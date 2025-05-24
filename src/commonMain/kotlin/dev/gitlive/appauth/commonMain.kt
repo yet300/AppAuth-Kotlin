@@ -31,7 +31,8 @@ expect class AuthorizationRequest(
     clientId: String,
     scopes: List<String>,
     responseType: String,
-    redirectUri: String
+    redirectUri: String,
+    additionalParameters: Map<String, String>?
 )
 
 expect class AuthorizationResponse {
