@@ -141,12 +141,14 @@ publishing {
     val PUBLISH_SCM_DEVELOPERCONNECTION: String by project
 
     repositories {
-        maven {
-            url = uri(OPEN_SOURCE_REPO)
-
-            credentials {
-                username = System.getenv("sonatypeUsername")
-                password = System.getenv("sonatypePassword")
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/yet300/AppAuth-Kotlin")
+                credentials {
+                    username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+                    password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+                }
             }
         }
     }
