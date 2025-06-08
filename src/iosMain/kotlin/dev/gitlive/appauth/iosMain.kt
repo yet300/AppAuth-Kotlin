@@ -24,10 +24,12 @@ import platform.UIKit.UIViewController
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
+import io.github.aakira.napier.Napier
 
 actual class AuthorizationException(message: String?) : Exception(message)
 
 // wrap network errors in an IOException so it matches ktor
+@OptIn(ExperimentalForeignApi::class)
 private fun NSError.toException() = when (domain) {
     OIDGeneralErrorDomain -> when (code) {
         OIDErrorCodeNetworkError -> IOException(localizedDescription)
@@ -54,12 +56,36 @@ actual class AuthorizationServiceConfiguration private constructor(val ios: OIDS
     )
 
     actual companion object {
-        actual suspend fun fetchFromIssuer(url: String): AuthorizationServiceConfiguration = suspendCoroutine { cont ->
-            OIDAuthorizationService.discoverServiceConfigurationForIssuer(NSURL.URLWithString(url)!!) { config, error ->
-                config?.let { cont.resume(AuthorizationServiceConfiguration(it)) }
-                    ?: cont.resumeWithException(error!!.toException())
+        @OptIn(ExperimentalForeignApi::class)
+        actual suspend fun fetchFromIssuer(url: String): AuthorizationServiceConfiguration =
+            suspendCoroutine { cont ->
+                Napier.d("🌐 Starting iOS fetchFromIssuer")
+                Napier.d("🔗 Issuer URL: $url")
+
+                val nsUrl = NSURL.URLWithString(url)
+                if (nsUrl == null) {
+                    Napier.e("❌ Invalid URL: $url")
+                    cont.resumeWithException(IllegalArgumentException("Invalid issuer URL: $url"))
+                    return@suspendCoroutine
+                }
+
+                OIDAuthorizationService.discoverServiceConfigurationForIssuer(nsUrl) { config, error ->
+                    Napier.d("🔁 Discovery callback triggered")
+
+                    if (config != null) {
+                        Napier.d("✅ Discovery successful")
+                        Napier.d("📥 AuthorizationServiceConfiguration:")
+                        Napier.d("  authorizationEndpoint: ${config.authorizationEndpoint.absoluteString}")
+                        Napier.d("  tokenEndpoint: ${config.tokenEndpoint.absoluteString}")
+                        Napier.d("  endSessionEndpoint: ${config.endSessionEndpoint?.absoluteString ?: "None"}")
+
+                        cont.resume(AuthorizationServiceConfiguration(config))
+                    } else {
+                        Napier.e("❌ Discovery failed: ${error?.localizedDescription}", error!!.toException())
+                        cont.resumeWithException(error.toException())
+                    }
+                }
             }
-        }
     }
 
     actual val authorizationEndpoint: String get() = ios.authorizationEndpoint.relativeString
@@ -87,6 +113,21 @@ actual class AuthorizationRequest private constructor(internal val ios: OIDAutho
             additionalParameters = additionalParameters as Map<Any?, *>?,
         )
     )
+    @OptIn(ExperimentalForeignApi::class)
+    override fun toString(): String {
+        return buildString {
+            appendLine("AuthorizationRequest(")
+            appendLine("  clientId: ${ios.clientID}")
+            appendLine("  scope: ${ios.scope ?: "None"}")
+            appendLine("  responseType: ${ios.responseType}")
+            appendLine("  redirectUri: ${ios.redirectURL?.absoluteString ?: "None"}")
+            appendLine("  additionalParameters: ${ios.additionalParameters ?: "None"}")
+            appendLine("  config:")
+            appendLine("    authorizationEndpoint: ${ios.configuration.authorizationEndpoint.absoluteString}")
+            appendLine("    tokenEndpoint: ${ios.configuration.tokenEndpoint.absoluteString}")
+            appendLine(")")
+        }
+    }
 }
 
 actual class TokenRequest internal constructor(internal val ios: OIDTokenRequest) {
@@ -109,13 +150,46 @@ actual class TokenRequest internal constructor(internal val ios: OIDTokenRequest
             additionalParameters = null
         )
     )
+    @OptIn(ExperimentalForeignApi::class)
+    override fun toString(): String {
+        return buildString {
+            appendLine("TokenRequest(")
+            appendLine("  clientId: ${ios.clientID ?: "None"}")
+            appendLine("  grantType: ${ios.grantType}")
+            appendLine("  scope: ${ios.scope ?: "None"}")
+            appendLine("  refreshToken: ${ios.refreshToken ?: "None"}")
+            appendLine("  redirectUri: ${ios.redirectURL?.absoluteString ?: "None"}")
+            appendLine("  additionalParameters: ${ios.additionalParameters ?: "None"}")
+            appendLine("  config:")
+            appendLine("    tokenEndpoint: ${ios.configuration.tokenEndpoint.absoluteString}")
+            appendLine("    authorizationEndpoint: ${ios.configuration.authorizationEndpoint.absoluteString}")
+            appendLine(")")
+        }
+    }
 }
-
+@OptIn(ExperimentalForeignApi::class)
 actual class AuthorizationResponse internal constructor(internal val ios: OIDAuthorizationResponse) {
     actual val authorizationCode: String? get() = ios.authorizationCode
     actual val idToken: String? get() = ios.idToken
     actual val scope get() = ios.scope
     actual fun createTokenExchangeRequest() = TokenRequest(ios.tokenExchangeRequest()!!)
+
+    override fun toString(): String {
+        return buildString {
+            appendLine("AuthorizationResponse(")
+            appendLine("  authorizationCode: ${authorizationCode ?: "None"}")
+            appendLine("  idToken: ${idToken ?: "None"}")
+            appendLine("  scope: ${scope ?: "None"}")
+            appendLine("  state: ${ios.state ?: "None"}")
+            appendLine("  redirectUri: ${ios.request?.redirectURL?.absoluteString ?: "None"}")
+            appendLine("  clientId: ${ios.request?.clientID ?: "None"}")
+            appendLine("  responseType: ${ios.request?.responseType ?: "None"}")
+            appendLine("  config:")
+            appendLine("    authorizationEndpoint: ${ios.request?.configuration?.authorizationEndpoint?.absoluteString ?: "None"}")
+            appendLine("    tokenEndpoint: ${ios.request?.configuration?.tokenEndpoint?.absoluteString ?: "None"}")
+            appendLine(")")
+        }
+    }
 }
 
 actual class EndSessionRequest internal constructor(internal val ios: OIDEndSessionRequest) {
@@ -146,6 +220,7 @@ actual typealias EndSessionResponse = OIDEndSessionResponse
 
 actual typealias AuthorizationServiceContext = UIViewController
 
+@OptIn(ExperimentalForeignApi::class)
 actual class AuthorizationService actual constructor(private val context: () -> AuthorizationServiceContext) {
 
     private var session: OIDExternalUserAgentSessionProtocol? = null
@@ -155,39 +230,83 @@ actual class AuthorizationService actual constructor(private val context: () -> 
 
     actual suspend fun performAuthorizationRequest(request: AuthorizationRequest): AuthorizationResponse =
         withContext(Dispatchers.Main) {
+            Napier.d("🔐 Starting iOS performAuthorizationRequest")
+            Napier.d("📤 AuthorizationRequest:\n$request")
+
             suspendCoroutine { cont ->
+                val viewController = context()
+                Napier.d("🧭 Presenting authorization from context: ${viewController::class.simpleName}")
+
                 session = OIDAuthorizationService.presentAuthorizationRequest(
                     request.ios,
-                    OIDExternalUserAgentIOS(context())
+                    OIDExternalUserAgentIOS(viewController)
                 ) { response, error ->
+                    Napier.d("🔁 Authorization callback triggered")
                     session = null
-                    response?.let { cont.resume(AuthorizationResponse(it)) }
-                        ?: cont.resumeWithException(error!!.toException())
+
+                    if (response != null) {
+                        Napier.d("✅ Authorization successful")
+                        Napier.d("📥 AuthorizationResponse:\n$response")
+                        cont.resume(AuthorizationResponse(response))
+                    } else {
+                        Napier.e("❌ Authorization failed: ${error?.localizedDescription}", error!!.toException())
+                        cont.resumeWithException(error.toException())
+                    }
                 }
             }
         }
+
 
     actual suspend fun performEndSessionRequest(request: EndSessionRequest): EndSessionResponse =
         withContext(Dispatchers.Main) {
+            Napier.d("🔐 Starting iOS performEndSessionRequest")
+            Napier.d("📤 EndSessionRequest:\n$request")
+
             suspendCoroutine { cont ->
+                val viewController = context()
+                Napier.d("🧭 Presenting end session from context: ${viewController::class.simpleName}")
+
                 session = OIDAuthorizationService.presentEndSessionRequest(
                     request.ios,
-                    OIDExternalUserAgentIOS(context())
+                    OIDExternalUserAgentIOS(viewController)
                 ) { response, error ->
+                    Napier.d("🔁 End session callback triggered")
                     session = null
-                    response?.let { cont.resume(it) }
-                        ?: cont.resumeWithException(error!!.toException())
+
+                    if (response != null) {
+                        Napier.d("✅ End session completed successfully")
+                        Napier.d("📥 EndSessionResponse: $response")
+                        cont.resume(response)
+                    } else {
+                        Napier.e("❌ End session failed: ${error?.localizedDescription}", error!!.toException())
+                        cont.resumeWithException(error.toException())
+                    }
                 }
             }
         }
 
+
     actual suspend fun performTokenRequest(request: TokenRequest): TokenResponse =
         withContext(Dispatchers.Main) {
+            Napier.d("🔐 Starting iOS performTokenRequest")
+            Napier.d("📤 TokenRequest:\n$request")
+
             suspendCoroutine { cont ->
+                Napier.d("📡 Performing token request via OIDAuthorizationService")
+
                 OIDAuthorizationService.performTokenRequest(request.ios) { response, error ->
-                    response?.let { cont.resume(TokenResponse(it)) }
-                        ?: cont.resumeWithException(error!!.toException())
+                    Napier.d("🔁 Token request callback triggered")
+
+                    if (response != null) {
+                        Napier.d("✅ Token request successful")
+                        Napier.d("📥 TokenResponse: ${TokenResponse(response)}")
+                        cont.resume(TokenResponse(response))
+                    } else {
+                        Napier.e("❌ Token request failed: ${error?.localizedDescription}", error!!.toException())
+                        cont.resumeWithException(error.toException())
+                    }
                 }
             }
         }
+
 }

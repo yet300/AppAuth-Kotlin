@@ -13,7 +13,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 import net.openid.appauth.TokenResponse as AndroidTokenResponse
-
+import io.github.aakira.napier.Napier
 
 actual typealias AuthorizationException = AuthorizationException
 
@@ -46,28 +46,80 @@ actual class AuthorizationService private constructor(private val android: net.o
     private lateinit var launcher: ActivityResultLauncher<Intent>
 
     actual suspend fun performAuthorizationRequest(request: AuthorizationRequest): AuthorizationResponse {
+        // Show the request details
+        Napier.d("📤 Starting AuthorizationRequest:\n${request}")
         // if a previous request is still pending then wait for it to finish
-        response.runCatching { await() }
+        response.runCatching {
+            Napier.d("⏳ Waiting for previous authorization request to complete...")
+            await()
+        }
         response = CompletableDeferred()
+        Napier.d("🚀 Launching authorization intent")
         launcher.launch(android.getAuthorizationRequestIntent(request.android))
-        return AuthorizationResponse(net.openid.appauth.AuthorizationResponse.fromIntent(response.await()!!)!!)
+        // Wait for the result and process it
+        return try {
+            val intent = response.await()
+            Napier.d("✅ Authorization response received")
+
+            val rawResponse = net.openid.appauth.AuthorizationResponse.fromIntent(intent!!)
+            Napier.d("📥 Parsed AuthorizationResponse:\n$rawResponse")
+
+            AuthorizationResponse(rawResponse!!)
+        } catch (e: Exception) {
+            Napier.e("❌ Authorization failed", e)
+            throw e
+        }
     }
 
     actual suspend fun performEndSessionRequest(request: EndSessionRequest): EndSessionResponse {
         // if a previous request is still pending then wait for it to finish
-        response.runCatching { await() }
+       // Show the request details
+        Napier.d("📤 Starting EndSessionRequest:\n$request")
+
+        // If a previous request is still pending, wait for it
+        response.runCatching {
+            Napier.d("⏳ Waiting for previous end session request to complete...")
+            await()
+        }
+
+        // Prepare for the new request
         response = CompletableDeferred()
+
+        // Launch the logout intent
+        Napier.d("🚀 Launching end session intent")
         launcher.launch(android.getEndSessionRequestIntent(request.android))
-        return EndSessionResponse.fromIntent(response.await()!!)!!
+
+        // Await the result and parse the response
+        return try {
+            val intent = response.await()
+            Napier.d("✅ End session response received")
+
+            val parsedResponse = EndSessionResponse.fromIntent(intent!!)
+            Napier.d("📥 Parsed EndSessionResponse:\n$parsedResponse")
+
+            parsedResponse!!
+        } catch (e: Exception) {
+            Napier.e("❌ End session failed", e)
+            throw e
+        }
     }
 
     actual suspend fun performTokenRequest(request: TokenRequest): TokenResponse =
         suspendCoroutine { cont ->
-            android.performTokenRequest(request.android) { response, ex ->
-                response?.let { cont.resume(TokenResponse(it)) }
-                    ?: cont.resumeWithException(ex!!.wrapIfNecessary())
+        Napier.d("🔐 Starting performTokenRequest")
+        Napier.d("📤 TokenRequest:\n$request")
+
+        android.performTokenRequest(request.android) { response, ex ->
+            if (response != null) {
+                Napier.d("✅ Token response received")
+                Napier.d("📥 Parsed TokenResponse:\n$response")
+                cont.resume(TokenResponse(response))
+            } else {
+                Napier.e("❌ Token request failed", ex)
+                cont.resumeWithException(ex!!.wrapIfNecessary())
             }
         }
+    }
 }
 
 actual class AuthorizationServiceConfiguration private constructor(
@@ -90,15 +142,24 @@ actual class AuthorizationServiceConfiguration private constructor(
 
     actual companion object {
         actual suspend fun fetchFromIssuer(url: String): AuthorizationServiceConfiguration =
-            suspendCoroutine { cont ->
+           suspendCoroutine { cont ->
+                Napier.d("🌐 Starting fetchFromIssuer")
+                Napier.d("🔗 Issuer URL: $url")
+
                 net.openid.appauth.AuthorizationServiceConfiguration
                     .fetchFromIssuer(Uri.parse(url)) { serviceConfiguration, ex ->
-                        serviceConfiguration?.let {
-                            cont.resume(AuthorizationServiceConfiguration(it))
+                        if (serviceConfiguration != null) {
+                            Napier.d("✅ Fetched AuthorizationServiceConfiguration:")
+                            Napier.d("  authorizationEndpoint: ${serviceConfiguration.authorizationEndpoint}")
+                            Napier.d("  tokenEndpoint: ${serviceConfiguration.tokenEndpoint}")
+                            Napier.d("  endSessionEndpoint: ${serviceConfiguration.endSessionEndpoint ?: "None"}")
+                            cont.resume(AuthorizationServiceConfiguration(serviceConfiguration))
+                        } else {
+                            Napier.e("❌ Failed to fetch configuration from issuer", ex)
+                            cont.resumeWithException(ex!!.wrapIfNecessary())
                         }
-                            ?: cont.resumeWithException(ex!!.wrapIfNecessary())
                     }
-            }
+           }
     }
 
     actual val authorizationEndpoint get() = android.authorizationEndpoint.toString()
@@ -126,6 +187,20 @@ actual class AuthorizationRequest private constructor(internal val android: net.
             .setScopes(scopes)
             .build()
     )
+    override fun toString(): String {
+        return buildString {
+            appendLine("AuthorizationRequest(")
+            appendLine("  clientId: ${android.clientId}")
+            appendLine("  scope: ${android.scope ?: "None"}")
+            appendLine("  responseType: ${android.responseType}")
+            appendLine("  redirectUri: ${android.redirectUri}")
+            appendLine("  additionalParameters: ${android.additionalParameters ?: "None"}")
+            appendLine("  config:")
+            appendLine("    authEndpoint: ${android.configuration.authorizationEndpoint}")
+            appendLine("    tokenEndpoint: ${android.configuration.tokenEndpoint}")
+            appendLine(")")
+        }
+    }
 }
 
 actual class AuthorizationResponse internal constructor(private val android: net.openid.appauth.AuthorizationResponse) {
@@ -133,6 +208,21 @@ actual class AuthorizationResponse internal constructor(private val android: net
     actual val idToken get() = android.idToken
     actual val scope get() = android.scope
     actual val authorizationCode get() = android.authorizationCode
+
+    override fun toString(): String {
+        return buildString {
+            appendLine("AuthorizationResponse(")
+            appendLine("  authorizationCode: ${authorizationCode ?: "None"}")
+            appendLine("  idToken: ${idToken ?: "None"}")
+            appendLine("  scope: ${scope ?: "None"}")
+            appendLine("  state: ${android.state ?: "None"}")
+            appendLine("  tokenExchangeRequest:")
+            appendLine("    clientId: ${android.request.clientId}")
+            appendLine("    redirectUri: ${android.request.redirectUri}")
+            appendLine("    responseType: ${android.request.responseType}")
+            appendLine(")")
+        }
+    }
 }
 
 actual class TokenRequest internal constructor(internal val android: net.openid.appauth.TokenRequest) {
@@ -147,6 +237,21 @@ actual class TokenRequest internal constructor(internal val android: net.openid.
             refreshToken?.let { setRefreshToken(it) }
         }.build()
     )
+    override fun toString(): String {
+        return buildString {
+            appendLine("TokenRequest(")
+            appendLine("  clientId: ${android.clientId}")
+            appendLine("  grantType: ${android.grantType}")
+            appendLine("  scope: ${android.scope ?: "None"}")
+            appendLine("  refreshToken: ${android.refreshToken ?: "None"}")
+            appendLine("  redirectUri: ${android.redirectUri ?: "None"}")
+            appendLine("  additionalParameters: ${android.additionalParameters ?: "None"}")
+            appendLine("  config:")
+            appendLine("    tokenEndpoint: ${android.configuration.tokenEndpoint}")
+            appendLine("    authEndpoint: ${android.configuration.authorizationEndpoint}")
+            appendLine(")")
+        }
+    }
 }
 
 actual class TokenResponse internal constructor(
@@ -160,6 +265,19 @@ actual class TokenResponse internal constructor(
 
     actual val refreshToken: String?
         get() = androidTokenResponse.refreshToken
+
+    override fun toString(): String {
+        return buildString {
+            appendLine("TokenResponse(")
+            appendLine("  accessToken: ${accessToken ?: "None"}")
+            appendLine("  idToken: ${idToken ?: "None"}")
+            appendLine("  refreshToken: ${refreshToken ?: "None"}")
+            appendLine("  tokenType: ${androidTokenResponse.tokenType ?: "None"}")
+            appendLine("  scope: ${androidTokenResponse.scope ?: "None"}")
+            appendLine("  accessTokenExpirationTime: ${androidTokenResponse.accessTokenExpirationTime ?: "None"}")
+            appendLine(")")
+        }
+    }
 }
 
 actual class EndSessionRequest internal constructor(internal val android: net.openid.appauth.EndSessionRequest) {
@@ -173,6 +291,18 @@ actual class EndSessionRequest internal constructor(internal val android: net.op
             postLogoutRedirectUri?.let { setPostLogoutRedirectUri(Uri.parse(postLogoutRedirectUri)) }
         }.build()
     )
+    override fun toString(): String {
+        return buildString {
+            appendLine("EndSessionRequest(")
+            appendLine("  idTokenHint: ${android.idTokenHint ?: "None"}")
+            appendLine("  postLogoutRedirectUri: ${android.postLogoutRedirectUri ?: "None"}")
+            appendLine("  state: ${android.state ?: "None"}")
+            appendLine("  additionalParameters: ${android.additionalParameters ?: "None"}")
+            appendLine("  config:")
+            appendLine("    endSessionEndpoint: ${android.configuration.endSessionEndpoint}")
+            appendLine(")")
+        }
+    }
 }
 
 actual typealias EndSessionResponse = net.openid.appauth.EndSessionResponse
