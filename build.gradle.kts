@@ -113,7 +113,7 @@ multiplatformSwiftPackage {
 }
 
 ktlint {
-    version.set("0.43.0")
+    version.set("0.50.0")
 }
 
 fun SigningExtension.whenRequired(block: () -> Boolean) {

@@ -126,8 +126,11 @@ actual class EndSessionRequest internal constructor(internal val ios: OIDEndSess
     ) : this(
         OIDEndSessionRequest(
             configuration = config.ios,
-            idTokenHint = idTokenHint,
-            postLogoutRedirectURL = postLogoutRedirectUri?.let { NSURL.URLWithString(it) },
+            idTokenHint = idTokenHint ?: "",
+            postLogoutRedirectURL = postLogoutRedirectUri?.let { uri ->
+                NSURL.URLWithString(uri)
+                    ?: throw IllegalArgumentException("Invalid postLogoutRedirectUri: $uri")
+            } ?: NSURL.URLWithString(postLogoutRedirectUri ?: "")!!,
             additionalParameters = null
         )
     )
