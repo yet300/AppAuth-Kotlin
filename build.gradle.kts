@@ -100,11 +100,7 @@ kotlin {
         ios.deploymentTarget = "7.0"
 
         noPodspec()
-        pod("AppAuth") {
-            source = git("https://github.com/philet/AppAuth-iOS.git") {
-                branch = "endsession-request-nullability"
-            }
-        }
+        pod("AppAuth")
     }
 }
 

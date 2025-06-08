@@ -151,3 +151,6 @@ fabric.properties
 !*/swiftpackage/.git
 
 swiftpackage
+
+.kotlin
+.idea
