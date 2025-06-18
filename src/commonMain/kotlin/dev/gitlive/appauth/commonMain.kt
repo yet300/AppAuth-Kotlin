@@ -6,7 +6,7 @@ expect class AuthorizationServiceContext
 
 expect class AuthorizationService(context: () -> AuthorizationServiceContext) {
     suspend fun performAuthorizationRequest(request: AuthorizationRequest): AuthorizationResponse
-    suspend fun performEndSessionRequest(request: EndSessionRequest): EndSessionResponse
+    suspend fun performEndSessionRequest(request: EndSessionRequest)
     suspend fun performTokenRequest(request: TokenRequest): TokenResponse
 }
 
@@ -61,4 +61,4 @@ expect class EndSessionRequest(
     postLogoutRedirectUri: String? = null
 )
 
-expect class EndSessionResponse
+

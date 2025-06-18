@@ -71,7 +71,7 @@ actual class AuthorizationService private constructor(private val android: net.o
         }
     }
 
-    actual suspend fun performEndSessionRequest(request: EndSessionRequest): EndSessionResponse {
+    actual suspend fun performEndSessionRequest(request: EndSessionRequest) {
         // if a previous request is still pending then wait for it to finish
        // Show the request details
         Napier.d("📤 Starting EndSessionRequest:\n$request")
@@ -94,10 +94,7 @@ actual class AuthorizationService private constructor(private val android: net.o
             val intent = response.await()
             Napier.d("✅ End session response received")
 
-            val parsedResponse = EndSessionResponse.fromIntent(intent!!)
-            Napier.d("📥 Parsed EndSessionResponse:\n$parsedResponse")
-
-            parsedResponse!!
+            return
         } catch (e: Exception) {
             Napier.e("❌ End session failed", e)
             throw e
@@ -305,4 +302,4 @@ actual class EndSessionRequest internal constructor(internal val android: net.op
     }
 }
 
-actual typealias EndSessionResponse = net.openid.appauth.EndSessionResponse
+

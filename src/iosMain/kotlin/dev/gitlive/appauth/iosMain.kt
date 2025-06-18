@@ -44,7 +44,8 @@ actual class AuthorizationServiceConfiguration private constructor(val ios: OIDS
         authorizationEndpoint: String,
         tokenEndpoint: String,
         registrationEndpoint: String?,
-        endSessionEndpoint: String?
+        endSessionEndpoint: String?,
+        revocationEndpoint: String?
     ) : this(
         OIDServiceConfiguration(
             NSURL.URLWithString(authorizationEndpoint)!!,
@@ -92,6 +93,7 @@ actual class AuthorizationServiceConfiguration private constructor(val ios: OIDS
     actual val tokenEndpoint: String get() = ios.tokenEndpoint.relativeString
     actual val registrationEndpoint: String? get() = ios.registrationEndpoint?.relativeString
     actual val endSessionEndpoint: String? get() = ios.endSessionEndpoint?.relativeString
+    actual val revocationEndpoint: String? get() = ios.revocationEndpoint?.absoluteString
 }
 
 actual class AuthorizationRequest private constructor(internal val ios: OIDAuthorizationRequest) {
@@ -216,7 +218,6 @@ actual class TokenResponse internal constructor(internal val ios: OIDTokenRespon
     actual val refreshToken: String? get() = ios.refreshToken
 }
 
-actual typealias EndSessionResponse = OIDEndSessionResponse
 
 actual typealias AuthorizationServiceContext = UIViewController
 
@@ -257,7 +258,7 @@ actual class AuthorizationService actual constructor(private val context: () -> 
         }
 
 
-    actual suspend fun performEndSessionRequest(request: EndSessionRequest): EndSessionResponse =
+    actual suspend fun performEndSessionRequest(request: EndSessionRequest) =
         withContext(Dispatchers.Main) {
             Napier.d("🔐 Starting iOS performEndSessionRequest")
             Napier.d("📤 EndSessionRequest:\n$request")
@@ -276,7 +277,7 @@ actual class AuthorizationService actual constructor(private val context: () -> 
                     if (response != null) {
                         Napier.d("✅ End session completed successfully")
                         Napier.d("📥 EndSessionResponse: $response")
-                        cont.resume(response)
+                        cont.resume(Unit)
                     } else {
                         Napier.e("❌ End session failed: ${error?.localizedDescription}", error!!.toException())
                         cont.resumeWithException(error.toException())
@@ -309,4 +310,7 @@ actual class AuthorizationService actual constructor(private val context: () -> 
             }
         }
 
+    actual suspend fun performTokenRevocationRequest(request: TokenRevocationRequest) {
+
+    }
 }
