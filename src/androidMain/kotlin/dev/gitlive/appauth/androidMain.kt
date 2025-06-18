@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.io.IOException
 import net.openid.appauth.AuthorizationException
@@ -13,7 +14,6 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 import net.openid.appauth.TokenResponse as AndroidTokenResponse
-import io.github.aakira.napier.Napier
 
 actual typealias AuthorizationException = AuthorizationException
 
@@ -139,7 +139,7 @@ actual class AuthorizationServiceConfiguration private constructor(
 
     actual companion object {
         actual suspend fun fetchFromIssuer(url: String): AuthorizationServiceConfiguration =
-           suspendCoroutine { cont ->
+            suspendCoroutine { cont ->
                 Napier.d("🌐 Starting fetchFromIssuer")
                 Napier.d("🔗 Issuer URL: $url")
 
@@ -281,11 +281,13 @@ actual class EndSessionRequest internal constructor(internal val android: net.op
     actual constructor(
         config: AuthorizationServiceConfiguration,
         idTokenHint: String?,
-        postLogoutRedirectUri: String?
+        postLogoutRedirectUri: String?,
+        additionalParameters: Map<String, String>?,
     ) : this(
         net.openid.appauth.EndSessionRequest.Builder(config.android).apply {
             idTokenHint?.let { setIdTokenHint(it) }
             postLogoutRedirectUri?.let { setPostLogoutRedirectUri(Uri.parse(postLogoutRedirectUri)) }
+            setAdditionalParameters(additionalParameters)
         }.build()
     )
     override fun toString(): String {

@@ -45,7 +45,6 @@ actual class AuthorizationServiceConfiguration private constructor(val ios: OIDS
         tokenEndpoint: String,
         registrationEndpoint: String?,
         endSessionEndpoint: String?,
-        revocationEndpoint: String?
     ) : this(
         OIDServiceConfiguration(
             NSURL.URLWithString(authorizationEndpoint)!!,
@@ -93,7 +92,6 @@ actual class AuthorizationServiceConfiguration private constructor(val ios: OIDS
     actual val tokenEndpoint: String get() = ios.tokenEndpoint.relativeString
     actual val registrationEndpoint: String? get() = ios.registrationEndpoint?.relativeString
     actual val endSessionEndpoint: String? get() = ios.endSessionEndpoint?.relativeString
-    actual val revocationEndpoint: String? get() = ios.revocationEndpoint?.absoluteString
 }
 
 actual class AuthorizationRequest private constructor(internal val ios: OIDAuthorizationRequest) {
@@ -199,6 +197,7 @@ actual class EndSessionRequest internal constructor(internal val ios: OIDEndSess
         config: AuthorizationServiceConfiguration,
         idTokenHint: String?,
         postLogoutRedirectUri: String?,
+        additionalParameters: Map<String, String>?,
     ) : this(
         OIDEndSessionRequest(
             configuration = config.ios,
@@ -207,7 +206,7 @@ actual class EndSessionRequest internal constructor(internal val ios: OIDEndSess
                 NSURL.URLWithString(uri)
                     ?: throw IllegalArgumentException("Invalid postLogoutRedirectUri: $uri")
             } ?: NSURL.URLWithString(postLogoutRedirectUri ?: "")!!,
-            additionalParameters = null
+            additionalParameters = additionalParameters?.mapValues { it.value as Any? }
         )
     )
 }
@@ -309,8 +308,4 @@ actual class AuthorizationService actual constructor(private val context: () -> 
                 }
             }
         }
-
-    actual suspend fun performTokenRevocationRequest(request: TokenRevocationRequest) {
-
-    }
 }

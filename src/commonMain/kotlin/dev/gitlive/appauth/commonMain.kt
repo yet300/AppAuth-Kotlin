@@ -58,7 +58,8 @@ expect class TokenResponse {
 expect class EndSessionRequest(
     config: AuthorizationServiceConfiguration,
     idTokenHint: String? = null,
-    postLogoutRedirectUri: String? = null
+    postLogoutRedirectUri: String? = null,
+    additionalParameters: Map<String, String>? = null,
 )
 
 
