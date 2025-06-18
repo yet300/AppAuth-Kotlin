@@ -6,7 +6,6 @@ import cocoapods.AppAuth.OIDAuthorizationRequest
 import cocoapods.AppAuth.OIDAuthorizationResponse
 import cocoapods.AppAuth.OIDAuthorizationService
 import cocoapods.AppAuth.OIDEndSessionRequest
-import cocoapods.AppAuth.OIDEndSessionResponse
 import cocoapods.AppAuth.OIDErrorCodeNetworkError
 import cocoapods.AppAuth.OIDExternalUserAgentIOS
 import cocoapods.AppAuth.OIDExternalUserAgentSessionProtocol
@@ -14,17 +13,21 @@ import cocoapods.AppAuth.OIDGeneralErrorDomain
 import cocoapods.AppAuth.OIDServiceConfiguration
 import cocoapods.AppAuth.OIDTokenRequest
 import cocoapods.AppAuth.OIDTokenResponse
+import io.github.aakira.napier.Napier
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
+import platform.Foundation.*
 import platform.Foundation.NSError
+import platform.Foundation.NSHTTPURLResponse
+import platform.Foundation.NSMutableURLRequest
+import platform.Foundation.NSString
 import platform.Foundation.NSURL
 import platform.UIKit.UIViewController
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
-import io.github.aakira.napier.Napier
 
 actual class AuthorizationException(message: String?) : Exception(message)
 
@@ -38,13 +41,17 @@ private fun NSError.toException() = when (domain) {
     else -> AuthorizationException(localizedDescription)
 }
 
-actual class AuthorizationServiceConfiguration private constructor(val ios: OIDServiceConfiguration) {
+actual class AuthorizationServiceConfiguration private constructor(
+    val ios: OIDServiceConfiguration,
+    actual val revocationEndpoint: String?
+) {
 
     actual constructor(
         authorizationEndpoint: String,
         tokenEndpoint: String,
         registrationEndpoint: String?,
         endSessionEndpoint: String?,
+        revocationEndpoint: String?
     ) : this(
         OIDServiceConfiguration(
             NSURL.URLWithString(authorizationEndpoint)!!,
@@ -52,7 +59,8 @@ actual class AuthorizationServiceConfiguration private constructor(val ios: OIDS
             null,
             registrationEndpoint?.let { NSURL.URLWithString(it) },
             endSessionEndpoint?.let { NSURL.URLWithString(it) }
-        )
+        ),
+        revocationEndpoint
     )
 
     actual companion object {
@@ -79,7 +87,20 @@ actual class AuthorizationServiceConfiguration private constructor(val ios: OIDS
                         Napier.d("  tokenEndpoint: ${config.tokenEndpoint.absoluteString}")
                         Napier.d("  endSessionEndpoint: ${config.endSessionEndpoint?.absoluteString ?: "None"}")
 
-                        cont.resume(AuthorizationServiceConfiguration(config))
+                        var revocationEndpoint: String? = null
+                        try {
+                            val discoveryDoc = config.discoveryDocument()
+                            if (discoveryDoc is Map<*, *>) {
+                                revocationEndpoint = discoveryDoc["revocation_endpoint"] as? String
+                                if (revocationEndpoint != null) {
+                                    Napier.i("✅ Found revocation_endpoint: $revocationEndpoint")
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Napier.w("Could not parse revocation_endpoint", e)
+                        }
+
+                        cont.resume(AuthorizationServiceConfiguration(config, revocationEndpoint))
                     } else {
                         Napier.e("❌ Discovery failed: ${error?.localizedDescription}", error!!.toException())
                         cont.resumeWithException(error.toException())
@@ -308,4 +329,67 @@ actual class AuthorizationService actual constructor(private val context: () -> 
                 }
             }
         }
+
+    actual suspend fun performRevokeTokenRequest(request: RevokeTokenRequest) {
+        val endpoint = request.config.revocationEndpoint
+            ?: throw AuthorizationException("Revocation endpoint not found in configuration.")
+
+        return suspendCoroutine { continuation ->
+            Napier.d("Performing token revocation via native URLSession to $endpoint")
+
+            val url = NSURL(string = endpoint)
+            val urlRequest = NSMutableURLRequest(uRL = url)
+
+            urlRequest.setHTTPMethod("POST")
+
+            urlRequest.setValue("application/x-www-form-urlencoded", forHTTPHeaderField = "Content-Type")
+
+            var bodyString = "token=${request.token.urlEncoded()}"
+            if (request.clientSecret == null) {
+                bodyString += "&client_id=${request.clientId.urlEncoded()}"
+            } else {
+                val credentials = "${request.clientId}:${request.clientSecret}"
+                val authHeader = "Basic ${credentials.base64Encoded()}"
+                urlRequest.setValue(authHeader, forHTTPHeaderField = "Authorization")
+            }
+
+            urlRequest.setHTTPBody((bodyString as NSString).dataUsingEncoding(NSUTF8StringEncoding))
+
+            val task = NSURLSession.sharedSession.dataTaskWithRequest(urlRequest) { data, response, error ->
+                if (error != null) {
+                    continuation.resumeWithException(error.toException())
+                    return@dataTaskWithRequest
+                }
+
+                val httpResponse = response as? NSHTTPURLResponse
+                val statusCode = httpResponse?.statusCode?.toInt() ?: 0
+                Napier.d("Revocation response code: $statusCode")
+
+                if (statusCode >= 400) {
+                    val errorBody = data?.let { NSString.create(it, NSUTF8StringEncoding) }
+                    continuation.resumeWithException(AuthorizationException("Revocation failed with code $statusCode: $errorBody"))
+                } else {
+                    continuation.resume(Unit)
+                }
+            }
+            task.resume()
+        }
+    }
+
+    private fun String.urlEncoded(): String {
+        return this.replace("=", "%3D").replace("+", "%2B").replace("/", "%2F")
+    }
 }
+
+@OptIn(ExperimentalForeignApi::class)
+internal fun String.base64Encoded(): String {
+    val data = (this as NSString).dataUsingEncoding(NSUTF8StringEncoding)
+    return data?.base64EncodedStringWithOptions(0u) ?: ""
+}
+
+actual class RevokeTokenRequest actual constructor(
+    val config: AuthorizationServiceConfiguration,
+    val token: String,
+    val clientId: String,
+    val clientSecret: String?
+)

@@ -6,6 +6,7 @@ actual class AuthorizationServiceConfiguration actual constructor(
     tokenEndpoint: String,
     registrationEndpoint: String?,
     endSessionEndpoint: String?,
+    revocationEndpoint: String?
 ) {
     actual companion object {
         actual suspend fun fetchFromIssuer(url: String): AuthorizationServiceConfiguration {
@@ -20,6 +21,8 @@ actual class AuthorizationServiceConfiguration actual constructor(
     actual val registrationEndpoint: String?
         get() = TODO("Not yet implemented")
     actual val endSessionEndpoint: String?
+        get() = TODO("Not yet implemented")
+    actual val revocationEndpoint: String?
         get() = TODO("Not yet implemented")
 }
 
@@ -75,6 +78,9 @@ actual class AuthorizationService actual constructor(context: () -> Authorizatio
     actual suspend fun performEndSessionRequest(request: EndSessionRequest) {
         TODO("Not yet implemented")
     }
+    actual suspend fun performRevokeTokenRequest(request: RevokeTokenRequest) {
+        TODO("Not yet implemented")
+    }
 }
 
 actual class EndSessionRequest actual constructor(
@@ -84,3 +90,9 @@ actual class EndSessionRequest actual constructor(
     additionalParameters: Map<String, String>?
 )
 
+actual class RevokeTokenRequest actual constructor(
+    val config: AuthorizationServiceConfiguration,
+    val token: String,
+    val clientId: String,
+    val clientSecret: String?
+)

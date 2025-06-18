@@ -3,13 +3,23 @@ package dev.gitlive.appauth
 import android.content.ContextWrapper
 import android.content.Intent
 import android.net.Uri
+import android.util.Base64
 import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import net.openid.appauth.AuthorizationException
+import org.json.JSONException
+import org.json.JSONObject
+import java.io.BufferedWriter
+import java.io.OutputStreamWriter
+import java.net.HttpURLConnection
+import java.net.URL
+import java.net.URLEncoder
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -106,57 +116,138 @@ actual class AuthorizationService private constructor(private val android: net.o
         Napier.d("🔐 Starting performTokenRequest")
         Napier.d("📤 TokenRequest:\n$request")
 
-        android.performTokenRequest(request.android) { response, ex ->
-            if (response != null) {
-                Napier.d("✅ Token response received")
-                Napier.d("📥 Parsed TokenResponse:\n$response")
-                cont.resume(TokenResponse(response))
-            } else {
-                Napier.e("❌ Token request failed", ex)
-                cont.resumeWithException(ex!!.wrapIfNecessary())
+            android.performTokenRequest(request.android) { response, ex ->
+                if (response != null) {
+                    Napier.d("✅ Token response received")
+                    Napier.d("📥 Parsed TokenResponse:\n$response")
+                    cont.resume(TokenResponse(response))
+                } else {
+                    Napier.e("❌ Token request failed", ex)
+                    cont.resumeWithException(ex!!.wrapIfNecessary())
+                }
             }
         }
+
+    actual suspend fun performRevokeTokenRequest(request: RevokeTokenRequest) =
+        withContext(Dispatchers.IO) {
+            val endpoint = request.config.revocationEndpoint
+                ?: throw IllegalStateException("Revocation endpoint not found in configuration.")
+
+            var connection: HttpURLConnection? = null
+            try {
+                Napier.d("Performing token revocation via native HttpURLConnection to $endpoint")
+                connection = URL(endpoint).openConnection() as HttpURLConnection
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+                connection.doOutput = true
+
+                val params = mutableMapOf("token" to request.token)
+                if (request.clientSecret == null) {
+                    params["client_id"] = request.clientId
+                } else {
+                    val credentials = "${request.clientId}:${request.clientSecret}"
+                    val authHeader =
+                        "Basic ${Base64.encodeToString(credentials.toByteArray(), Base64.NO_WRAP)}"
+                    connection.setRequestProperty("Authorization", authHeader)
+                }
+
+                val writer = BufferedWriter(OutputStreamWriter(connection.outputStream, "UTF-8"))
+                writer.write(getPostDataString(params))
+                writer.flush()
+                writer.close()
+
+                val responseCode = connection.responseCode
+                Napier.d("Revocation response code: $responseCode")
+
+
+                if (responseCode >= 400) {
+                    val errorStream = connection.errorStream?.bufferedReader()?.readText()
+                    throw AuthorizationException.fromTemplate(
+                        AuthorizationException.GeneralErrors.SERVER_ERROR,
+                        Exception("Revocation failed with code $responseCode: $errorStream")
+                    )
+                }
+
+            } catch (e: Exception) {
+                Napier.e("Revocation request failed", e)
+                throw e
+            } finally {
+                connection?.disconnect()
+            }
+        }
+
+    private fun getPostDataString(params: Map<String, String>): String {
+        return params.entries.joinToString("&") { (key, value) ->
+            "${URLEncoder.encode(key, "UTF-8")}=${URLEncoder.encode(value, "UTF-8")}"
+        }
     }
+
 }
 
 actual class AuthorizationServiceConfiguration private constructor(
-    val android: net.openid.appauth.AuthorizationServiceConfiguration
+    val android: net.openid.appauth.AuthorizationServiceConfiguration,
+    actual val revocationEndpoint: String?
 ) {
 
     actual constructor(
         authorizationEndpoint: String,
         tokenEndpoint: String,
         registrationEndpoint: String?,
-        endSessionEndpoint: String?
+        endSessionEndpoint: String?,
+        revocationEndpoint: String?
     ) : this(
         net.openid.appauth.AuthorizationServiceConfiguration(
             Uri.parse(authorizationEndpoint),
             Uri.parse(tokenEndpoint),
             registrationEndpoint?.let { Uri.parse(it) },
             endSessionEndpoint?.let { Uri.parse(it) },
-        )
+        ),
+        revocationEndpoint
     )
 
     actual companion object {
         actual suspend fun fetchFromIssuer(url: String): AuthorizationServiceConfiguration =
             suspendCoroutine { cont ->
-                Napier.d("🌐 Starting fetchFromIssuer")
-                Napier.d("🔗 Issuer URL: $url")
-
-                net.openid.appauth.AuthorizationServiceConfiguration
-                    .fetchFromIssuer(Uri.parse(url)) { serviceConfiguration, ex ->
-                        if (serviceConfiguration != null) {
-                            Napier.d("✅ Fetched AuthorizationServiceConfiguration:")
-                            Napier.d("  authorizationEndpoint: ${serviceConfiguration.authorizationEndpoint}")
-                            Napier.d("  tokenEndpoint: ${serviceConfiguration.tokenEndpoint}")
-                            Napier.d("  endSessionEndpoint: ${serviceConfiguration.endSessionEndpoint ?: "None"}")
-                            cont.resume(AuthorizationServiceConfiguration(serviceConfiguration))
-                        } else {
-                            Napier.e("❌ Failed to fetch configuration from issuer", ex)
-                            cont.resumeWithException(ex!!.wrapIfNecessary())
-                        }
+                Napier.d("🌐 Starting custom fetchFromIssuer for Android")
+                net.openid.appauth.AuthorizationServiceConfiguration.fetchFromIssuer(
+                    Uri.parse(url)
+                ) { serviceConfiguration, ex ->
+                    if (ex != null) {
+                        Napier.e("❌ Failed to fetch base configuration", ex)
+                        cont.resumeWithException(ex.wrapIfNecessary())
+                        return@fetchFromIssuer
                     }
-           }
+                    if (serviceConfiguration == null) {
+                        Napier.e("❌ Fetched configuration is null")
+                        cont.resumeWithException(IllegalStateException("Configuration is null"))
+                        return@fetchFromIssuer
+                    }
+
+                    var revocationEndpoint: String? = null
+                    try {
+                        val discoveryDocJson: JSONObject? = serviceConfiguration.discoveryDoc?.docJson
+                        if (discoveryDocJson != null && discoveryDocJson.has("revocation_endpoint")) {
+                            // Проверяем, что значение не null, прежде чем его получать
+                            if (!discoveryDocJson.isNull("revocation_endpoint")) {
+                                revocationEndpoint = discoveryDocJson.getString("revocation_endpoint")
+                                Napier.i("✅ Found revocation_endpoint: $revocationEndpoint")
+                            }
+                        }
+                    } catch (jsonEx: JSONException) {
+                        Napier.w(
+                            "Could not parse revocation_endpoint from discovery document",
+                            jsonEx
+                        )
+                    }
+
+                    cont.resume(
+                        AuthorizationServiceConfiguration(
+                            android = serviceConfiguration,
+                            revocationEndpoint = revocationEndpoint
+                        )
+                    )
+                }
+            }
     }
 
     actual val authorizationEndpoint get() = android.authorizationEndpoint.toString()
@@ -304,4 +395,10 @@ actual class EndSessionRequest internal constructor(internal val android: net.op
     }
 }
 
+actual class RevokeTokenRequest actual constructor(
+    val config: AuthorizationServiceConfiguration,
+    val token: String,
+    val clientId: String,
+    val clientSecret: String?
+)
 

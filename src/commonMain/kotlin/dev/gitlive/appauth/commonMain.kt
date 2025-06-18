@@ -8,6 +8,7 @@ expect class AuthorizationService(context: () -> AuthorizationServiceContext) {
     suspend fun performAuthorizationRequest(request: AuthorizationRequest): AuthorizationResponse
     suspend fun performEndSessionRequest(request: EndSessionRequest)
     suspend fun performTokenRequest(request: TokenRequest): TokenResponse
+    suspend fun performRevokeTokenRequest(request: RevokeTokenRequest)
 }
 
 expect class AuthorizationServiceConfiguration(
@@ -15,11 +16,13 @@ expect class AuthorizationServiceConfiguration(
     tokenEndpoint: String,
     registrationEndpoint: String? = null,
     endSessionEndpoint: String? = null,
+    revocationEndpoint: String? = null
 ) {
     val authorizationEndpoint: String
     val tokenEndpoint: String
     val registrationEndpoint: String?
     val endSessionEndpoint: String?
+    val revocationEndpoint: String?
 
     companion object {
         suspend fun fetchFromIssuer(url: String): AuthorizationServiceConfiguration
@@ -63,3 +66,9 @@ expect class EndSessionRequest(
 )
 
 
+expect class RevokeTokenRequest(
+    config: AuthorizationServiceConfiguration,
+    token: String,
+    clientId: String,
+    clientSecret: String? = null
+)
