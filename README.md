@@ -13,7 +13,7 @@ The AppAuth-Kotlin SDK is a Kotlin-first SDK for AppAuth. It's API is similar to
 To install simply add to your common sourceset in the build gradle
 
 ```kotlin
-    implementation("dev.gitlive:appauth-kotlin:0.0.5")
+    implementation("dev.gitlive:appauth-kotlin:0.0.8")
 ```
 
 Perform a gradle refresh and you should then be able to import the app auth files.
