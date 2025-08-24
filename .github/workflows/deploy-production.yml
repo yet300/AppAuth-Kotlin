@@ -1,0 +1,75 @@
+name: Deploy Production
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [released]
+
+jobs:
+  deploy-production:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup GPG
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import
+          echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --export-secret-key ${{ secrets.GPG_KEY_ID }} > secring.gpg
+
+      - name: Update version property
+        uses: Reedyuk/write-properties@v1.0.3
+        with:
+          path: 'gradle.properties'
+          property: 'MODULE_VERSION_NUMBER'
+          value: ${{ github.ref_name }}
+
+      - name: Build and test
+        run: |
+          ./gradlew clean build
+          ./gradlew test
+          ./gradlew ktlintCheck
+
+      - name: Deploy to GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew publishToGitHubPackagesRepository
+
+      - name: Deploy to Maven Central
+        uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: :publish
+        env:
+          sonatypeUsername: ${{ secrets.SONATYPEUSERNAME }}
+          sonatypePassword: ${{ secrets.SONATYPEPASSWORD }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.PASSPHRASE }}
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Release ${{ github.ref }}
+            
+            ## Changes
+            - [Add your release notes here]
+            
+            ## Installation
+            ```kotlin
+            implementation("dev.gitlive:appauth-kotlin:${{ github.ref_name }}")
+            ```
+          draft: false
+          prerelease: false

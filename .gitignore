@@ -154,3 +154,6 @@ swiftpackage
 
 .kotlin
 .idea
+
+# Environment variables for deployment
+.env
