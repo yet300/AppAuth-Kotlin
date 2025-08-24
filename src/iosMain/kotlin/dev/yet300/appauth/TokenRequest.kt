@@ -10,7 +10,7 @@ actual class TokenRequest internal constructor(internal val ios: OIDTokenRequest
         config: AuthorizationServiceConfiguration,
         clientId: String,
         grantType: String,
-        refreshToken: String?
+        refreshToken: String?,
     ) : this(
         OIDTokenRequest(
             configuration = config.ios,
@@ -22,9 +22,10 @@ actual class TokenRequest internal constructor(internal val ios: OIDTokenRequest
             scope = null,
             refreshToken = refreshToken,
             codeVerifier = null,
-            additionalParameters = null
-        )
+            additionalParameters = null,
+        ),
     )
+
     @OptIn(ExperimentalForeignApi::class)
     override fun toString(): String {
         return buildString {

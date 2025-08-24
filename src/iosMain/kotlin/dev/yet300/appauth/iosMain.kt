@@ -38,8 +38,8 @@ actual class EndSessionRequest internal constructor(internal val ios: OIDEndSess
                 NSURL.URLWithString(uri)
                     ?: throw IllegalArgumentException("Invalid postLogoutRedirectUri: $uri")
             } ?: NSURL.URLWithString(postLogoutRedirectUri ?: "")!!,
-            additionalParameters = additionalParameters?.mapValues { it.value as Any? }
-        )
+            additionalParameters = additionalParameters?.mapValues { it.value as Any? },
+        ),
     )
 }
 
@@ -49,13 +49,11 @@ actual class TokenResponse internal constructor(internal val ios: OIDTokenRespon
     actual val refreshToken: String? get() = ios.refreshToken
 }
 
-
 actual typealias AuthorizationServiceContext = UIViewController
-
 
 actual class RevokeTokenRequest actual constructor(
     val config: AuthorizationServiceConfiguration,
     val token: String,
     val clientId: String,
-    val clientSecret: String?
+    val clientSecret: String?,
 )

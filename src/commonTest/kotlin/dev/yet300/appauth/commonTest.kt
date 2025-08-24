@@ -23,7 +23,7 @@ class AuthorizationServiceTest {
             .fetchFromIssuer("https://oauth-server.com/auth/realms/MyRealm")
         assertEquals(
             "https://oauth-server.com/auth/realms/MyRealm/protocol/openid-connect/auth",
-            actual.authorizationEndpoint
+            actual.authorizationEndpoint,
         )
     }
 
@@ -39,7 +39,7 @@ class AuthorizationServiceTest {
             listOf("profile"),
             "code",
             "myapp://oauth2redirect",
-            null
+            null,
         )
         withAuthorizationService { service ->
             val actual = async(Dispatchers.Main) { service.performAuthorizationRequest(request) }
@@ -60,7 +60,7 @@ class AuthorizationServiceTest {
             listOf("profile"),
             "code",
             "myapp://oauth2redirect",
-            null
+            null,
         )
         withAuthorizationService { service ->
             val response = async(Dispatchers.Main) { service.performAuthorizationRequest(request) }
@@ -80,7 +80,7 @@ class AuthorizationServiceTest {
         )
         val request = EndSessionRequest(
             config,
-            postLogoutRedirectUri = "myapp://oauth2redirect"
+            postLogoutRedirectUri = "myapp://oauth2redirect",
         )
         withAuthorizationService { service ->
             service.performEndSessionRequest(request)

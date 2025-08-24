@@ -6,7 +6,7 @@ actual class AuthorizationServiceConfiguration actual constructor(
     tokenEndpoint: String,
     registrationEndpoint: String?,
     endSessionEndpoint: String?,
-    revocationEndpoint: String?
+    revocationEndpoint: String?,
 ) {
     actual companion object {
         actual suspend fun fetchFromIssuer(url: String): AuthorizationServiceConfiguration {
@@ -34,7 +34,7 @@ actual class AuthorizationRequest actual constructor(
     scopes: List<String>,
     responseType: String,
     redirectUri: String,
-    additionalParameters: Map<String, String>?
+    additionalParameters: Map<String, String>?,
 )
 
 actual class AuthorizationResponse {
@@ -54,7 +54,7 @@ actual class TokenRequest actual constructor(
     config: AuthorizationServiceConfiguration,
     clientId: String,
     grantType: String,
-    refreshToken: String?
+    refreshToken: String?,
 )
 
 actual class TokenResponse {
@@ -87,12 +87,12 @@ actual class EndSessionRequest actual constructor(
     config: AuthorizationServiceConfiguration,
     idTokenHint: String?,
     postLogoutRedirectUri: String?,
-    additionalParameters: Map<String, String>?
+    additionalParameters: Map<String, String>?,
 )
 
 actual class RevokeTokenRequest actual constructor(
     val config: AuthorizationServiceConfiguration,
     val token: String,
     val clientId: String,
-    val clientSecret: String?
+    val clientSecret: String?,
 )

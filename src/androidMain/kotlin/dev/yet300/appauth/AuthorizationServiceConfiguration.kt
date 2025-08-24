@@ -17,7 +17,7 @@ internal fun net.openid.appauth.AuthorizationException.wrapIfNecessary() =
 
 actual class AuthorizationServiceConfiguration private constructor(
     val android: net.openid.appauth.AuthorizationServiceConfiguration,
-    actual val revocationEndpoint: String?
+    actual val revocationEndpoint: String?,
 ) {
 
     actual constructor(
@@ -25,7 +25,7 @@ actual class AuthorizationServiceConfiguration private constructor(
         tokenEndpoint: String,
         registrationEndpoint: String?,
         endSessionEndpoint: String?,
-        revocationEndpoint: String?
+        revocationEndpoint: String?,
     ) : this(
         net.openid.appauth.AuthorizationServiceConfiguration(
             Uri.parse(authorizationEndpoint),
@@ -33,7 +33,7 @@ actual class AuthorizationServiceConfiguration private constructor(
             registrationEndpoint?.let { Uri.parse(it) },
             endSessionEndpoint?.let { Uri.parse(it) },
         ),
-        revocationEndpoint
+        revocationEndpoint,
     )
 
     actual companion object {
@@ -41,7 +41,7 @@ actual class AuthorizationServiceConfiguration private constructor(
             suspendCoroutine { cont ->
                 Napier.d("🌐 Starting custom fetchFromIssuer for Android")
                 net.openid.appauth.AuthorizationServiceConfiguration.fetchFromIssuer(
-                    Uri.parse(url)
+                    Uri.parse(url),
                 ) { serviceConfiguration, ex ->
                     if (ex != null) {
                         Napier.e("❌ Failed to fetch base configuration", ex)
@@ -67,15 +67,15 @@ actual class AuthorizationServiceConfiguration private constructor(
                     } catch (jsonEx: JSONException) {
                         Napier.w(
                             "Could not parse revocation_endpoint from discovery document",
-                            jsonEx
+                            jsonEx,
                         )
                     }
 
                     cont.resume(
                         AuthorizationServiceConfiguration(
                             android = serviceConfiguration,
-                            revocationEndpoint = revocationEndpoint
-                        )
+                            revocationEndpoint = revocationEndpoint,
+                        ),
                     )
                 }
             }

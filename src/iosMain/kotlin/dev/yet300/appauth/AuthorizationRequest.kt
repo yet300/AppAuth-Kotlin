@@ -14,7 +14,7 @@ actual class AuthorizationRequest private constructor(internal val ios: OIDAutho
         scopes: List<String>,
         responseType: String,
         redirectUri: String,
-        additionalParameters: Map<String, String>?
+        additionalParameters: Map<String, String>?,
     ) : this(
         OIDAuthorizationRequest(
             configuration = config.ios,
@@ -23,7 +23,7 @@ actual class AuthorizationRequest private constructor(internal val ios: OIDAutho
             redirectURL = NSURL.URLWithString(redirectUri)!!,
             responseType = responseType,
             additionalParameters = additionalParameters as Map<Any?, *>?,
-        )
+        ),
     )
 
     @OptIn(ExperimentalForeignApi::class)

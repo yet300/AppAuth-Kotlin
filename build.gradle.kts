@@ -43,7 +43,7 @@ kotlin {
     listOf(
         iosX64(),
         iosArm64(),
-        iosSimulatorArm64()
+        iosSimulatorArm64(),
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = MODULE_NAME
@@ -64,11 +64,9 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
         }
 
-
         jsMain.dependencies {}
 
         iosMain.dependencies {}
-
 
         androidMain.dependencies {
             implementation("net.openid:appauth:0.11.1")
@@ -146,7 +144,7 @@ publishing {
                 password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
             }
         }
-        
+
         // Maven Central (OSSRH) - uncomment when ready to deploy to Maven Central
         // maven {
         //     name = "OSSRH"
@@ -205,12 +203,12 @@ signing {
     val signingKey: String? by project
     val signingPassword: String? by project
     val signingSecretKeyRingFile: String? by project
-    
+
     if (signingKey != null && signingPassword != null) {
         useInMemoryPgpKeys(signingKey, signingPassword)
     } else if (signingSecretKeyRingFile != null) {
         useGpgCmd()
     }
-    
+
     sign(publishing.publications)
 }

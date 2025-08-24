@@ -5,12 +5,12 @@ actual class TokenRequest internal constructor(internal val android: net.openid.
         config: AuthorizationServiceConfiguration,
         clientId: String,
         grantType: String,
-        refreshToken: String?
+        refreshToken: String?,
     ) : this(
         net.openid.appauth.TokenRequest.Builder(config.android, clientId).apply {
             setGrantType(grantType)
             refreshToken?.let { setRefreshToken(it) }
-        }.build()
+        }.build(),
     )
     override fun toString(): String {
         return buildString {

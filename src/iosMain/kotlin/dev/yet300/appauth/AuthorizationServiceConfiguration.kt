@@ -9,11 +9,10 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-
 @OptIn(ExperimentalForeignApi::class)
 actual class AuthorizationServiceConfiguration private constructor(
     val ios: OIDServiceConfiguration,
-    actual val revocationEndpoint: String?
+    actual val revocationEndpoint: String?,
 ) {
 
     actual constructor(
@@ -21,16 +20,16 @@ actual class AuthorizationServiceConfiguration private constructor(
         tokenEndpoint: String,
         registrationEndpoint: String?,
         endSessionEndpoint: String?,
-        revocationEndpoint: String?
+        revocationEndpoint: String?,
     ) : this(
         OIDServiceConfiguration(
             NSURL.URLWithString(authorizationEndpoint)!!,
             NSURL.URLWithString(tokenEndpoint)!!,
             null,
             registrationEndpoint?.let { NSURL.URLWithString(it) },
-            endSessionEndpoint?.let { NSURL.URLWithString(it) }
+            endSessionEndpoint?.let { NSURL.URLWithString(it) },
         ),
-        revocationEndpoint
+        revocationEndpoint,
     )
 
     actual companion object {

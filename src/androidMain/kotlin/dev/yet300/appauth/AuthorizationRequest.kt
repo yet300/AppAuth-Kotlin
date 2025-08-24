@@ -9,7 +9,7 @@ actual class AuthorizationRequest private constructor(internal val android: net.
         scopes: List<String>,
         responseType: String,
         redirectUri: String,
-        additionalParameters: Map<String, String>?
+        additionalParameters: Map<String, String>?,
     ) : this(
         net.openid.appauth.AuthorizationRequest.Builder(
             config.android,
@@ -19,7 +19,7 @@ actual class AuthorizationRequest private constructor(internal val android: net.
         )
             .setAdditionalParameters(additionalParameters)
             .setScopes(scopes)
-            .build()
+            .build(),
     )
     override fun toString(): String {
         return buildString {

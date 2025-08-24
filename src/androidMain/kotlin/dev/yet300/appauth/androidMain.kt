@@ -10,7 +10,7 @@ actual typealias AuthorizationException = AuthorizationException
 actual typealias AuthorizationServiceContext = ContextWrapper
 
 actual class TokenResponse internal constructor(
-    private val androidTokenResponse: AndroidTokenResponse
+    private val androidTokenResponse: AndroidTokenResponse,
 ) {
     actual val idToken: String?
         get() = androidTokenResponse.idToken
@@ -46,7 +46,7 @@ actual class EndSessionRequest internal constructor(internal val android: net.op
             idTokenHint?.let { setIdTokenHint(it) }
             postLogoutRedirectUri?.let { setPostLogoutRedirectUri(Uri.parse(postLogoutRedirectUri)) }
             setAdditionalParameters(additionalParameters)
-        }.build()
+        }.build(),
     )
     override fun toString(): String {
         return buildString {
@@ -66,6 +66,5 @@ actual class RevokeTokenRequest actual constructor(
     val config: AuthorizationServiceConfiguration,
     val token: String,
     val clientId: String,
-    val clientSecret: String?
+    val clientSecret: String?,
 )
-

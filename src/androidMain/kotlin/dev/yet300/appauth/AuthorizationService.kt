@@ -19,12 +19,11 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-
 actual class AuthorizationService private constructor(private val android: net.openid.appauth.AuthorizationService) {
     actual constructor(context: () -> AuthorizationServiceContext) : this(
         net.openid.appauth.AuthorizationService(
-            context()
-        )
+            context(),
+        ),
     )
 
     fun bind(activityOrFragment: ActivityResultCaller) {
@@ -41,10 +40,9 @@ actual class AuthorizationService private constructor(private val android: net.o
 
     private lateinit var launcher: ActivityResultLauncher<Intent>
 
-
     actual suspend fun performAuthorizationRequest(request: AuthorizationRequest): AuthorizationResponse {
         // Show the request details
-        Napier.d("📤 Starting AuthorizationRequest:\n${request}")
+        Napier.d("📤 Starting AuthorizationRequest:\n$request")
         // if a previous request is still pending then wait for it to finish
         response.runCatching {
             Napier.d("⏳ Waiting for previous authorization request to complete...")
@@ -70,7 +68,7 @@ actual class AuthorizationService private constructor(private val android: net.o
 
     actual suspend fun performEndSessionRequest(request: EndSessionRequest) {
         // if a previous request is still pending then wait for it to finish
-       // Show the request details
+        // Show the request details
         Napier.d("📤 Starting EndSessionRequest:\n$request")
 
         // If a previous request is still pending, wait for it
@@ -100,8 +98,8 @@ actual class AuthorizationService private constructor(private val android: net.o
 
     actual suspend fun performTokenRequest(request: TokenRequest): TokenResponse =
         suspendCoroutine { cont ->
-        Napier.d("🔐 Starting performTokenRequest")
-        Napier.d("📤 TokenRequest:\n$request")
+            Napier.d("🔐 Starting performTokenRequest")
+            Napier.d("📤 TokenRequest:\n$request")
 
             android.performTokenRequest(request.android) { response, ex ->
                 if (response != null) {
@@ -146,15 +144,13 @@ actual class AuthorizationService private constructor(private val android: net.o
                 val responseCode = connection.responseCode
                 Napier.d("Revocation response code: $responseCode")
 
-
                 if (responseCode >= 400) {
                     val errorStream = connection.errorStream?.bufferedReader()?.readText()
                     throw AuthorizationException.fromTemplate(
                         AuthorizationException.GeneralErrors.SERVER_ERROR,
-                        Exception("Revocation failed with code $responseCode: $errorStream")
+                        Exception("Revocation failed with code $responseCode: $errorStream"),
                     )
                 }
-
             } catch (e: Exception) {
                 Napier.e("Revocation request failed", e)
                 throw e
@@ -168,5 +164,4 @@ actual class AuthorizationService private constructor(private val android: net.o
             "${URLEncoder.encode(key, "UTF-8")}=${URLEncoder.encode(value, "UTF-8")}"
         }
     }
-
 }

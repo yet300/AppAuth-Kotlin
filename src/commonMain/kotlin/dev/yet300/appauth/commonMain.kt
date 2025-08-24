@@ -38,7 +38,6 @@ expect class AuthorizationService(context: () -> AuthorizationServiceContext) {
      */
     suspend fun performTokenRequest(request: TokenRequest): TokenResponse
 
-
     /**
      * Performs a token revocation request as per RFC 7009.
      * This directly communicates with the revocation endpoint to invalidate a token.
@@ -63,7 +62,7 @@ expect class AuthorizationServiceConfiguration(
     tokenEndpoint: String,
     registrationEndpoint: String? = null,
     endSessionEndpoint: String? = null,
-    revocationEndpoint: String? = null
+    revocationEndpoint: String? = null,
 ) {
     val authorizationEndpoint: String
     val tokenEndpoint: String
@@ -90,7 +89,7 @@ expect class AuthorizationRequest(
     scopes: List<String>,
     responseType: String,
     redirectUri: String,
-    additionalParameters: Map<String, String>?
+    additionalParameters: Map<String, String>?,
 )
 
 expect class AuthorizationResponse {
@@ -104,7 +103,7 @@ expect class TokenRequest(
     config: AuthorizationServiceConfiguration,
     clientId: String,
     grantType: String,
-    refreshToken: String? = null
+    refreshToken: String? = null,
 )
 
 expect class TokenResponse {
@@ -120,7 +119,6 @@ expect class EndSessionRequest(
     additionalParameters: Map<String, String>? = null,
 )
 
-
 /**
  * Encapsulates a request to revoke a token at the token revocation endpoint.
  *
@@ -134,5 +132,5 @@ expect class RevokeTokenRequest(
     config: AuthorizationServiceConfiguration,
     token: String,
     clientId: String,
-    clientSecret: String? = null
+    clientSecret: String? = null,
 )

@@ -24,14 +24,11 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-
-
 @OptIn(ExperimentalForeignApi::class)
 internal fun String.base64Encoded(): String {
     val data = (this as NSString).dataUsingEncoding(NSUTF8StringEncoding)
     return data?.base64EncodedStringWithOptions(0u) ?: ""
 }
-
 
 @OptIn(ExperimentalForeignApi::class)
 actual class AuthorizationService actual constructor(private val context: () -> AuthorizationServiceContext) {
@@ -52,7 +49,7 @@ actual class AuthorizationService actual constructor(private val context: () -> 
 
                 session = OIDAuthorizationService.presentAuthorizationRequest(
                     request.ios,
-                    OIDExternalUserAgentIOS(viewController)
+                    OIDExternalUserAgentIOS(viewController),
                 ) { response, error ->
                     Napier.d("🔁 Authorization callback triggered")
                     session = null
@@ -64,14 +61,13 @@ actual class AuthorizationService actual constructor(private val context: () -> 
                     } else {
                         Napier.e(
                             "❌ Authorization failed: ${error?.localizedDescription}",
-                            error!!.toException()
+                            error!!.toException(),
                         )
                         cont.resumeWithException(error.toException())
                     }
                 }
             }
         }
-
 
     actual suspend fun performEndSessionRequest(request: EndSessionRequest) =
         withContext(Dispatchers.Main) {
@@ -84,7 +80,7 @@ actual class AuthorizationService actual constructor(private val context: () -> 
 
                 session = OIDAuthorizationService.presentEndSessionRequest(
                     request.ios,
-                    OIDExternalUserAgentIOS(viewController)
+                    OIDExternalUserAgentIOS(viewController),
                 ) { response, error ->
                     Napier.d("🔁 End session callback triggered")
                     session = null
@@ -96,14 +92,13 @@ actual class AuthorizationService actual constructor(private val context: () -> 
                     } else {
                         Napier.e(
                             "❌ End session failed: ${error?.localizedDescription}",
-                            error!!.toException()
+                            error!!.toException(),
                         )
                         cont.resumeWithException(error.toException())
                     }
                 }
             }
         }
-
 
     actual suspend fun performTokenRequest(request: TokenRequest): TokenResponse =
         withContext(Dispatchers.Main) {
@@ -123,7 +118,7 @@ actual class AuthorizationService actual constructor(private val context: () -> 
                     } else {
                         Napier.e(
                             "❌ Token request failed: ${error?.localizedDescription}",
-                            error!!.toException()
+                            error!!.toException(),
                         )
                         cont.resumeWithException(error.toException())
                     }
@@ -145,7 +140,7 @@ actual class AuthorizationService actual constructor(private val context: () -> 
 
             urlRequest.setValue(
                 "application/x-www-form-urlencoded",
-                forHTTPHeaderField = "Content-Type"
+                forHTTPHeaderField = "Content-Type",
             )
 
             var bodyString = "token=${request.token.urlEncoded()}"
