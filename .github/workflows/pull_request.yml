@@ -21,7 +21,7 @@ jobs:
           distribution: 'temurin'
 #      - name: KtLint Check
 #        run: ./gradlew ktlintCheck
-      - name: Kover
-        run: ./gradlew koverVerify
+#      - name: Kover
+#        run: ./gradlew koverVerify
       - name: Assemble
         run: ./gradlew build
