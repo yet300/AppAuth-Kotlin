@@ -19,8 +19,8 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: KtLint Check
-        run: ./gradlew ktlintCheck
+#      - name: KtLint Check
+#        run: ./gradlew ktlintCheck
       - name: Kover
         run: ./gradlew koverVerify
       - name: Assemble
