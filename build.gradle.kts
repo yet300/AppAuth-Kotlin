@@ -126,7 +126,6 @@ val javadocJar by tasks.creating(Jar::class) {
 }
 
 publishing {
-    val OPEN_SOURCE_REPO: String by project
     val PUBLISH_NAME: String by project
     val PUBLISH_DESCRIPTION: String by project
     val PUBLISH_URL: String by project
@@ -138,16 +137,33 @@ publishing {
     val PUBLISH_SCM_DEVELOPERCONNECTION: String by project
 
     repositories {
-        repositories {
-            maven {
-                name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/yet300/AppAuth-Kotlin")
-                credentials {
-                    username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
-                    password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
-                }
+        // GitHub Packages (default)
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/yet300/AppAuth-Kotlin")
+            credentials {
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
             }
         }
+        
+        // Maven Central (OSSRH) - uncomment when ready to deploy to Maven Central
+        // maven {
+        //     name = "OSSRH"
+        //     url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+        //     credentials {
+        //         username = project.findProperty("ossrhUsername") as String? ?: System.getenv("OSSRH_USERNAME")
+        //         password = project.findProperty("ossrhPassword") as String? ?: System.getenv("OSSRH_PASSWORD")
+        //     }
+        // }
+        // maven {
+        //     name = "OSSRHSnapshot"
+        //     url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+        //     credentials {
+        //         username = project.findProperty("ossrhUsername") as String? ?: System.getenv("OSSRH_USERNAME")
+        //         password = project.findProperty("ossrhPassword") as String? ?: System.getenv("OSSRH_PASSWORD")
+        //     }
+        // }
     }
 
     publications.all {
@@ -188,6 +204,13 @@ signing {
     whenRequired { gradle.taskGraph.hasTask("publish") }
     val signingKey: String? by project
     val signingPassword: String? by project
-    useInMemoryPgpKeys(signingKey, signingPassword)
+    val signingSecretKeyRingFile: String? by project
+    
+    if (signingKey != null && signingPassword != null) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+    } else if (signingSecretKeyRingFile != null) {
+        useGpgCmd()
+    }
+    
     sign(publishing.publications)
 }
