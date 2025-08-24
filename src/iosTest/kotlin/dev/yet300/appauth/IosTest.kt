@@ -3,7 +3,7 @@ package dev.yet300.appauth
 import kotlinx.coroutines.CoroutineScope
 
 actual val context: Any
-    get() = TODO("context not yet implemented")
+    get() = "mock-context"
 
 actual fun simulateSignIn() {
 }
