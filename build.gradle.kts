@@ -1,11 +1,10 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
-    kotlin("multiplatform") version "2.1.21"
-    kotlin("native.cocoapods") version "2.1.21"
+    kotlin("multiplatform") version "2.2.20"
     id("com.android.library")
-    id("io.github.luca992.multiplatform-swiftpackage") version "2.2.4"
-    id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
+    id("io.github.frankois944.spmForKmp") version "1.0.0-Beta05"
+    id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
     id("org.jetbrains.kotlinx.kover") version "0.6.1"
     `maven-publish`
     signing
@@ -50,11 +49,16 @@ kotlin {
             xcf.add(this)
             isStatic = true
         }
+        iosTarget.compilations {
+            val main by getting {
+                cinterops.create("nativeIosShared")
+            }
+        }
     }
 
     sourceSets {
         commonMain.dependencies {
-            implementation("io.ktor:ktor-utils:3.1.3")
+            implementation("io.ktor:ktor-utils:3.3.0")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
             implementation("io.github.aakira:napier:2.7.1") // or latest
         }
@@ -94,20 +98,22 @@ android {
     namespace = MODULE_PACKAGE_NAME
 }
 
-kotlin {
-    cocoapods {
-        ios.deploymentTarget = "7.0"
+swiftPackageConfig {
+    create("nativeIosShared") {
+        spmWorkingPath = "${projectDir.resolve("SPM")}"
+        minIos = "13.0"
 
-        noPodspec()
-        pod("AppAuth")
-    }
-}
-
-multiplatformSwiftPackage {
-    packageName(MODULE_NAME)
-    swiftToolsVersion("5.4")
-    targetPlatforms {
-        iOS { v("13") }
+        dependency {
+            remotePackageVersion(
+                url = uri("https://github.com/openid/AppAuth-iOS.git"),
+                products = {
+                    add("AppAuth", exportToKotlin = true)
+                    add("AppAuthCore", exportToKotlin = true)
+                },
+                packageName = "AppAuth-iOS",
+                version = "2.0.0",
+            )
+        }
     }
 }
 
