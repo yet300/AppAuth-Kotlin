@@ -2,7 +2,7 @@
 
 package dev.yet300.appauth
 
-import cocoapods.AppAuth.OIDTokenRequest
+import AppAuth.OIDTokenRequest
 import kotlinx.cinterop.ExperimentalForeignApi
 
 actual class TokenRequest internal constructor(internal val ios: OIDTokenRequest) {
@@ -30,15 +30,15 @@ actual class TokenRequest internal constructor(internal val ios: OIDTokenRequest
     override fun toString(): String {
         return buildString {
             appendLine("TokenRequest(")
-            appendLine("  clientId: ${ios.clientID ?: "None"}")
-            appendLine("  grantType: ${ios.grantType}")
-            appendLine("  scope: ${ios.scope ?: "None"}")
-            appendLine("  refreshToken: ${ios.refreshToken ?: "None"}")
-            appendLine("  redirectUri: ${ios.redirectURL?.absoluteString ?: "None"}")
-            appendLine("  additionalParameters: ${ios.additionalParameters ?: "None"}")
+            appendLine("  clientId: ${ios.clientID()}")
+            appendLine("  grantType: ${ios.grantType()}")
+            appendLine("  scope: ${ios.scope() ?: "None"}")
+            appendLine("  refreshToken: ${ios.refreshToken() ?: "None"}")
+            appendLine("  redirectUri: ${ios.redirectURL()?.absoluteString ?: "None"}")
+            appendLine("  additionalParameters: ${ios.additionalParameters() ?: "None"}")
             appendLine("  config:")
-            appendLine("    tokenEndpoint: ${ios.configuration.tokenEndpoint.absoluteString}")
-            appendLine("    authorizationEndpoint: ${ios.configuration.authorizationEndpoint.absoluteString}")
+            appendLine("    tokenEndpoint: ${ios.configuration().tokenEndpoint().absoluteString}")
+            appendLine("    authorizationEndpoint: ${ios.configuration().authorizationEndpoint().absoluteString}")
             appendLine(")")
         }
     }

@@ -2,7 +2,7 @@
 
 package dev.yet300.appauth
 
-import cocoapods.AppAuth.OIDAuthorizationRequest
+import AppAuth.OIDAuthorizationRequest
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSURL
 
@@ -30,14 +30,14 @@ actual class AuthorizationRequest private constructor(internal val ios: OIDAutho
     override fun toString(): String {
         return buildString {
             appendLine("AuthorizationRequest(")
-            appendLine("  clientId: ${ios.clientID}")
-            appendLine("  scope: ${ios.scope ?: "None"}")
-            appendLine("  responseType: ${ios.responseType}")
-            appendLine("  redirectUri: ${ios.redirectURL?.absoluteString ?: "None"}")
-            appendLine("  additionalParameters: ${ios.additionalParameters ?: "None"}")
+            appendLine("  clientId: ${ios.clientID()}")
+            appendLine("  scope: ${ios.scope() ?: "None"}")
+            appendLine("  responseType: ${ios.responseType()}")
+            appendLine("  redirectUri: ${ios.redirectURL()?.absoluteString ?: "None"}")
+            appendLine("  additionalParameters: ${ios.additionalParameters() ?: "None"}")
             appendLine("  config:")
-            appendLine("    authorizationEndpoint: ${ios.configuration.authorizationEndpoint.absoluteString}")
-            appendLine("    tokenEndpoint: ${ios.configuration.tokenEndpoint.absoluteString}")
+            appendLine("    authorizationEndpoint: ${ios.configuration().authorizationEndpoint().absoluteString}")
+            appendLine("    tokenEndpoint: ${ios.configuration().tokenEndpoint().absoluteString}")
             appendLine(")")
         }
     }

@@ -1,7 +1,7 @@
 package dev.yet300.appauth
 
-import cocoapods.AppAuth.OIDAuthorizationService
-import cocoapods.AppAuth.OIDServiceConfiguration
+import AppAuth.OIDAuthorizationService
+import AppAuth.OIDServiceConfiguration
 import io.github.aakira.napier.Napier
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSURL
@@ -52,9 +52,9 @@ actual class AuthorizationServiceConfiguration private constructor(
                     if (config != null) {
                         Napier.d("✅ Discovery successful")
                         Napier.d("📥 AuthorizationServiceConfiguration:")
-                        Napier.d("  authorizationEndpoint: ${config.authorizationEndpoint.absoluteString}")
-                        Napier.d("  tokenEndpoint: ${config.tokenEndpoint.absoluteString}")
-                        Napier.d("  endSessionEndpoint: ${config.endSessionEndpoint?.absoluteString ?: "None"}")
+                        Napier.d("  authorizationEndpoint: ${config.authorizationEndpoint().absoluteString}")
+                        Napier.d("  tokenEndpoint: ${config.tokenEndpoint().absoluteString}")
+                        Napier.d("  endSessionEndpoint: ${config.endSessionEndpoint()?.absoluteString ?: "None"}")
 
                         var revocationEndpoint: String? = null
                         try {
@@ -78,8 +78,8 @@ actual class AuthorizationServiceConfiguration private constructor(
             }
     }
 
-    actual val authorizationEndpoint: String get() = ios.authorizationEndpoint.relativeString
-    actual val tokenEndpoint: String get() = ios.tokenEndpoint.relativeString
-    actual val registrationEndpoint: String? get() = ios.registrationEndpoint?.relativeString
-    actual val endSessionEndpoint: String? get() = ios.endSessionEndpoint?.relativeString
+    actual val authorizationEndpoint: String get() = ios.authorizationEndpoint().relativeString
+    actual val tokenEndpoint: String get() = ios.tokenEndpoint().relativeString
+    actual val registrationEndpoint: String? get() = ios.registrationEndpoint()?.relativeString
+    actual val endSessionEndpoint: String? get() = ios.endSessionEndpoint()?.relativeString
 }

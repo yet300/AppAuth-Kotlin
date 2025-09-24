@@ -2,10 +2,10 @@
 
 package dev.yet300.appauth
 
-import cocoapods.AppAuth.OIDEndSessionRequest
-import cocoapods.AppAuth.OIDErrorCodeNetworkError
-import cocoapods.AppAuth.OIDGeneralErrorDomain
-import cocoapods.AppAuth.OIDTokenResponse
+import AppAuth.OIDEndSessionRequest
+import AppAuth.OIDTokenResponse
+import AppAuthCore.OIDErrorCodeNetworkError
+import AppAuthCore.OIDGeneralErrorDomain
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.io.IOException
 import platform.Foundation.NSError
@@ -44,9 +44,9 @@ actual class EndSessionRequest internal constructor(internal val ios: OIDEndSess
 }
 
 actual class TokenResponse internal constructor(internal val ios: OIDTokenResponse) {
-    actual val idToken: String? get() = ios.idToken
-    actual val accessToken: String? get() = ios.accessToken
-    actual val refreshToken: String? get() = ios.refreshToken
+    actual val idToken: String? get() = ios.idToken()
+    actual val accessToken: String? get() = ios.accessToken()
+    actual val refreshToken: String? get() = ios.refreshToken()
 }
 
 actual typealias AuthorizationServiceContext = UIViewController

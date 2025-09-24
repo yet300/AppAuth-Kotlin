@@ -1,8 +1,8 @@
 package dev.yet300.appauth
 
-import cocoapods.AppAuth.OIDAuthorizationService
-import cocoapods.AppAuth.OIDExternalUserAgentIOS
-import cocoapods.AppAuth.OIDExternalUserAgentSessionProtocol
+import AppAuth.OIDAuthorizationService
+import AppAuth.OIDExternalUserAgentIOS
+import AppAuth.OIDExternalUserAgentSessionProtocol
 import io.github.aakira.napier.Napier
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.Dispatchers
