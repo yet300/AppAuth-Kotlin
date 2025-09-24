@@ -31,7 +31,7 @@ kover {
 
 kotlin {
     androidTarget {
-        publishAllLibraryVariants()
+        publishLibraryVariants()
     }
 
     js(IR) {
@@ -79,7 +79,7 @@ kotlin {
 }
 
 android {
-    compileSdk = 35
+    compileSdk = 36
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
         minSdk = 23
