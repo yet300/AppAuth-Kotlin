@@ -1,9 +1,9 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
-    kotlin("multiplatform") version "2.2.20"
+    kotlin("multiplatform") version "2.2.21-RC"
     id("com.android.library")
-    id("io.github.frankois944.spmForKmp") version "1.0.0-Beta05"
+    id("io.github.frankois944.spmForKmp") version "1.0.0-Beta07"
     id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
     id("org.jetbrains.kotlinx.kover") version "0.6.1"
     `maven-publish`
