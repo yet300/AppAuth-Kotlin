@@ -118,7 +118,9 @@ swiftPackageConfig {
 }
 
 ktlint {
-    version.set("0.50.0")
+    filter {
+        exclude("*.gradle.kts")
+    }
 }
 
 fun SigningExtension.whenRequired(block: () -> Boolean) {
