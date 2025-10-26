@@ -1,6 +1,7 @@
 package dev.yet300.appauth
 
 actual class AuthorizationServiceContext
+
 actual class AuthorizationServiceConfiguration actual constructor(
     authorizationEndpoint: String,
     tokenEndpoint: String,
@@ -66,7 +67,9 @@ actual class TokenResponse {
         get() = TODO("Not yet implemented")
 }
 
-actual class AuthorizationService actual constructor(context: () -> AuthorizationServiceContext) {
+actual class AuthorizationService actual constructor(
+    context: () -> AuthorizationServiceContext,
+) {
     actual suspend fun performAuthorizationRequest(request: AuthorizationRequest): AuthorizationResponse {
         TODO("Not yet implemented")
     }
@@ -78,6 +81,7 @@ actual class AuthorizationService actual constructor(context: () -> Authorizatio
     actual suspend fun performEndSessionRequest(request: EndSessionRequest) {
         TODO("Not yet implemented")
     }
+
     actual suspend fun performRevokeTokenRequest(request: RevokeTokenRequest) {
         TODO("Not yet implemented")
     }

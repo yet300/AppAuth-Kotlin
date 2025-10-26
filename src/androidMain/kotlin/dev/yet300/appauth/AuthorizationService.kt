@@ -19,7 +19,9 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-actual class AuthorizationService private constructor(private val android: net.openid.appauth.AuthorizationService) {
+actual class AuthorizationService private constructor(
+    private val android: net.openid.appauth.AuthorizationService,
+) {
     actual constructor(context: () -> AuthorizationServiceContext) : this(
         net.openid.appauth.AuthorizationService(
             context(),
@@ -27,13 +29,14 @@ actual class AuthorizationService private constructor(private val android: net.o
     )
 
     fun bind(activityOrFragment: ActivityResultCaller) {
-        launcher = activityOrFragment
-            .registerForActivityResult(StartActivityForResult()) { result ->
-                result.data
-                    ?.let { AuthorizationException.fromIntent(it) }
-                    ?.let { response.completeExceptionally(it.wrapIfNecessary()) }
-                    ?: response.complete(result.data)
-            }
+        launcher =
+            activityOrFragment
+                .registerForActivityResult(StartActivityForResult()) { result ->
+                    result.data
+                        ?.let { AuthorizationException.fromIntent(it) }
+                        ?.let { response.completeExceptionally(it.wrapIfNecessary()) }
+                        ?: response.complete(result.data)
+                }
     }
 
     private var response = CompletableDeferred<Intent?>(value = null)
@@ -56,7 +59,9 @@ actual class AuthorizationService private constructor(private val android: net.o
             val intent = response.await()
             Napier.d("✅ Authorization response received")
 
-            val rawResponse = net.openid.appauth.AuthorizationResponse.fromIntent(intent!!)
+            val rawResponse =
+                net.openid.appauth.AuthorizationResponse
+                    .fromIntent(intent!!)
             Napier.d("📥 Parsed AuthorizationResponse:\n$rawResponse")
 
             AuthorizationResponse(rawResponse!!)
@@ -115,8 +120,9 @@ actual class AuthorizationService private constructor(private val android: net.o
 
     actual suspend fun performRevokeTokenRequest(request: RevokeTokenRequest) =
         withContext(Dispatchers.IO) {
-            val endpoint = request.config.revocationEndpoint
-                ?: throw IllegalStateException("Revocation endpoint not found in configuration.")
+            val endpoint =
+                request.config.revocationEndpoint
+                    ?: throw IllegalStateException("Revocation endpoint not found in configuration.")
 
             var connection: HttpURLConnection? = null
             try {
@@ -159,9 +165,8 @@ actual class AuthorizationService private constructor(private val android: net.o
             }
         }
 
-    private fun getPostDataString(params: Map<String, String>): String {
-        return params.entries.joinToString("&") { (key, value) ->
+    private fun getPostDataString(params: Map<String, String>): String =
+        params.entries.joinToString("&") { (key, value) ->
             "${URLEncoder.encode(key, "UTF-8")}=${URLEncoder.encode(value, "UTF-8")}"
         }
-    }
 }

@@ -19,58 +19,67 @@ expect suspend fun CoroutineScope.withAuthorizationService(action: suspend (serv
 @OptIn(ExperimentalCoroutinesApi::class)
 class AuthorizationServiceTest {
 //    @Test
-    fun testFetchFromIssuer() = runTest {
-        val actual = AuthorizationServiceConfiguration
-            .fetchFromIssuer("https://oauth-server.com/auth/realms/MyRealm")
-        assertEquals(
-            "https://oauth-server.com/auth/realms/MyRealm/protocol/openid-connect/auth",
-            actual.authorizationEndpoint,
-        )
-    }
+    fun testFetchFromIssuer() =
+        runTest {
+            val actual =
+                AuthorizationServiceConfiguration
+                    .fetchFromIssuer("https://oauth-server.com/auth/realms/MyRealm")
+            assertEquals(
+                "https://oauth-server.com/auth/realms/MyRealm/protocol/openid-connect/auth",
+                actual.authorizationEndpoint,
+            )
+        }
 
     @Test
-    fun testPerformAuthorizationRequest() = runTest {
-        // Simple test to verify the test infrastructure works
-        // This test ensures that basic test functionality is working
-        assertTrue(true)
-    }
+    fun testPerformAuthorizationRequest() =
+        runTest {
+            // Simple test to verify the test infrastructure works
+            // This test ensures that basic test functionality is working
+            assertTrue(true)
+        }
 
 //    @Test
-    fun testPerformTokenRequest() = runTest {
-        val config = AuthorizationServiceConfiguration(
-            "https://oauth-server.com/auth/realms/MyRealm/protocol/openid-connect/auth",
-            "https://oauth-server.com/auth/realms/MyRealm/protocol/openid-connect/token",
-        )
-        val request = AuthorizationRequest(
-            config,
-            "MyClient",
-            listOf("profile"),
-            "code",
-            "myapp://oauth2redirect",
-            null,
-        )
-        withAuthorizationService { service ->
-            val response = async(Dispatchers.Main) { service.performAuthorizationRequest(request) }
+    fun testPerformTokenRequest() =
+        runTest {
+            val config =
+                AuthorizationServiceConfiguration(
+                    "https://oauth-server.com/auth/realms/MyRealm/protocol/openid-connect/auth",
+                    "https://oauth-server.com/auth/realms/MyRealm/protocol/openid-connect/token",
+                )
+            val request =
+                AuthorizationRequest(
+                    config,
+                    "MyClient",
+                    listOf("profile"),
+                    "code",
+                    "myapp://oauth2redirect",
+                    null,
+                )
+            withAuthorizationService { service ->
+                val response = async(Dispatchers.Main) { service.performAuthorizationRequest(request) }
 //            simulateSignIn()
-            val actual = service.performTokenRequest(response.await().createTokenExchangeRequest())
-            assertNotNull(actual.accessToken)
+                val actual = service.performTokenRequest(response.await().createTokenExchangeRequest())
+                assertNotNull(actual.accessToken)
+            }
         }
-    }
 
 //    @Test
-    fun testPerformEndSessionRequest() = runTest {
-        val config = AuthorizationServiceConfiguration(
-            "https://oauth-server.com/auth/realms/MyRealm/protocol/openid-connect/auth",
-            "https://oauth-server.com/auth/realms/MyRealm/protocol/openid-connect/token",
-            endSessionEndpoint =
-            "https://oauth-server.com/auth/realms/MyRealm/protocol/openid-connect/logout",
-        )
-        val request = EndSessionRequest(
-            config,
-            postLogoutRedirectUri = "myapp://oauth2redirect",
-        )
-        withAuthorizationService { service ->
-            service.performEndSessionRequest(request)
+    fun testPerformEndSessionRequest() =
+        runTest {
+            val config =
+                AuthorizationServiceConfiguration(
+                    "https://oauth-server.com/auth/realms/MyRealm/protocol/openid-connect/auth",
+                    "https://oauth-server.com/auth/realms/MyRealm/protocol/openid-connect/token",
+                    endSessionEndpoint =
+                        "https://oauth-server.com/auth/realms/MyRealm/protocol/openid-connect/logout",
+                )
+            val request =
+                EndSessionRequest(
+                    config,
+                    postLogoutRedirectUri = "myapp://oauth2redirect",
+                )
+            withAuthorizationService { service ->
+                service.performEndSessionRequest(request)
+            }
         }
-    }
 }

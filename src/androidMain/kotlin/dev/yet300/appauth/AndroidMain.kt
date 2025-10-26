@@ -21,8 +21,8 @@ actual class TokenResponse internal constructor(
     actual val refreshToken: String?
         get() = androidTokenResponse.refreshToken
 
-    override fun toString(): String {
-        return buildString {
+    override fun toString(): String =
+        buildString {
             appendLine("TokenResponse(")
             appendLine("  accessToken: ${accessToken ?: "None"}")
             appendLine("  idToken: ${idToken ?: "None"}")
@@ -32,24 +32,28 @@ actual class TokenResponse internal constructor(
             appendLine("  accessTokenExpirationTime: ${androidTokenResponse.accessTokenExpirationTime ?: "None"}")
             appendLine(")")
         }
-    }
 }
 
-actual class EndSessionRequest internal constructor(internal val android: net.openid.appauth.EndSessionRequest) {
+actual class EndSessionRequest internal constructor(
+    internal val android: net.openid.appauth.EndSessionRequest,
+) {
     actual constructor(
         config: AuthorizationServiceConfiguration,
         idTokenHint: String?,
         postLogoutRedirectUri: String?,
         additionalParameters: Map<String, String>?,
     ) : this(
-        net.openid.appauth.EndSessionRequest.Builder(config.android).apply {
-            idTokenHint?.let { setIdTokenHint(it) }
-            postLogoutRedirectUri?.let { setPostLogoutRedirectUri(Uri.parse(postLogoutRedirectUri)) }
-            setAdditionalParameters(additionalParameters)
-        }.build(),
+        net.openid.appauth.EndSessionRequest
+            .Builder(config.android)
+            .apply {
+                idTokenHint?.let { setIdTokenHint(it) }
+                postLogoutRedirectUri?.let { setPostLogoutRedirectUri(Uri.parse(postLogoutRedirectUri)) }
+                setAdditionalParameters(additionalParameters)
+            }.build(),
     )
-    override fun toString(): String {
-        return buildString {
+
+    override fun toString(): String =
+        buildString {
             appendLine("EndSessionRequest(")
             appendLine("  idTokenHint: ${android.idTokenHint ?: "None"}")
             appendLine("  postLogoutRedirectUri: ${android.postLogoutRedirectUri ?: "None"}")
@@ -59,7 +63,6 @@ actual class EndSessionRequest internal constructor(internal val android: net.op
             appendLine("    endSessionEndpoint: ${android.configuration.endSessionEndpoint}")
             appendLine(")")
         }
-    }
 }
 
 actual class RevokeTokenRequest actual constructor(

@@ -14,7 +14,6 @@ actual class AuthorizationServiceConfiguration private constructor(
     val ios: OIDServiceConfiguration,
     actual val revocationEndpoint: String?,
 ) {
-
     actual constructor(
         authorizationEndpoint: String,
         tokenEndpoint: String,

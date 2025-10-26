@@ -6,8 +6,9 @@ import AppAuth.OIDAuthorizationRequest
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSURL
 
-actual class AuthorizationRequest private constructor(internal val ios: OIDAuthorizationRequest) {
-
+actual class AuthorizationRequest private constructor(
+    internal val ios: OIDAuthorizationRequest,
+) {
     actual constructor(
         config: AuthorizationServiceConfiguration,
         clientId: String,
@@ -27,8 +28,8 @@ actual class AuthorizationRequest private constructor(internal val ios: OIDAutho
     )
 
     @OptIn(ExperimentalForeignApi::class)
-    override fun toString(): String {
-        return buildString {
+    override fun toString(): String =
+        buildString {
             appendLine("AuthorizationRequest(")
             appendLine("  clientId: ${ios.clientID()}")
             appendLine("  scope: ${ios.scope() ?: "None"}")
@@ -40,5 +41,4 @@ actual class AuthorizationRequest private constructor(internal val ios: OIDAutho
             appendLine("    tokenEndpoint: ${ios.configuration().tokenEndpoint().absoluteString}")
             appendLine(")")
         }
-    }
 }

@@ -31,12 +31,12 @@ internal fun String.base64Encoded(): String {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual class AuthorizationService actual constructor(private val context: () -> AuthorizationServiceContext) {
-
+actual class AuthorizationService actual constructor(
+    private val context: () -> AuthorizationServiceContext,
+) {
     private var session: OIDExternalUserAgentSessionProtocol? = null
 
-    fun resumeExternalUserAgentFlow(url: NSURL): Boolean =
-        session?.resumeExternalUserAgentFlowWithURL(url) == true
+    fun resumeExternalUserAgentFlow(url: NSURL): Boolean = session?.resumeExternalUserAgentFlowWithURL(url) == true
 
     actual suspend fun performAuthorizationRequest(request: AuthorizationRequest): AuthorizationResponse =
         withContext(Dispatchers.Main) {
@@ -47,25 +47,26 @@ actual class AuthorizationService actual constructor(private val context: () -> 
                 val viewController = context()
                 Napier.d("🧭 Presenting authorization from context: ${viewController::class.simpleName}")
 
-                session = OIDAuthorizationService.presentAuthorizationRequest(
-                    request.ios,
-                    OIDExternalUserAgentIOS(viewController),
-                ) { response, error ->
-                    Napier.d("🔁 Authorization callback triggered")
-                    session = null
+                session =
+                    OIDAuthorizationService.presentAuthorizationRequest(
+                        request.ios,
+                        OIDExternalUserAgentIOS(viewController),
+                    ) { response, error ->
+                        Napier.d("🔁 Authorization callback triggered")
+                        session = null
 
-                    if (response != null) {
-                        Napier.d("✅ Authorization successful")
-                        Napier.d("📥 AuthorizationResponse:\n$response")
-                        cont.resume(AuthorizationResponse(response))
-                    } else {
-                        Napier.e(
-                            "❌ Authorization failed: ${error?.localizedDescription}",
-                            error!!.toException(),
-                        )
-                        cont.resumeWithException(error.toException())
+                        if (response != null) {
+                            Napier.d("✅ Authorization successful")
+                            Napier.d("📥 AuthorizationResponse:\n$response")
+                            cont.resume(AuthorizationResponse(response))
+                        } else {
+                            Napier.e(
+                                "❌ Authorization failed: ${error?.localizedDescription}",
+                                error!!.toException(),
+                            )
+                            cont.resumeWithException(error.toException())
+                        }
                     }
-                }
             }
         }
 
@@ -78,25 +79,26 @@ actual class AuthorizationService actual constructor(private val context: () -> 
                 val viewController = context()
                 Napier.d("🧭 Presenting end session from context: ${viewController::class.simpleName}")
 
-                session = OIDAuthorizationService.presentEndSessionRequest(
-                    request.ios,
-                    OIDExternalUserAgentIOS(viewController),
-                ) { response, error ->
-                    Napier.d("🔁 End session callback triggered")
-                    session = null
+                session =
+                    OIDAuthorizationService.presentEndSessionRequest(
+                        request.ios,
+                        OIDExternalUserAgentIOS(viewController),
+                    ) { response, error ->
+                        Napier.d("🔁 End session callback triggered")
+                        session = null
 
-                    if (response != null) {
-                        Napier.d("✅ End session completed successfully")
-                        Napier.d("📥 EndSessionResponse: $response")
-                        cont.resume(Unit)
-                    } else {
-                        Napier.e(
-                            "❌ End session failed: ${error?.localizedDescription}",
-                            error!!.toException(),
-                        )
-                        cont.resumeWithException(error.toException())
+                        if (response != null) {
+                            Napier.d("✅ End session completed successfully")
+                            Napier.d("📥 EndSessionResponse: $response")
+                            cont.resume(Unit)
+                        } else {
+                            Napier.e(
+                                "❌ End session failed: ${error?.localizedDescription}",
+                                error!!.toException(),
+                            )
+                            cont.resumeWithException(error.toException())
+                        }
                     }
-                }
             }
         }
 
@@ -127,8 +129,9 @@ actual class AuthorizationService actual constructor(private val context: () -> 
         }
 
     actual suspend fun performRevokeTokenRequest(request: RevokeTokenRequest) {
-        val endpoint = request.config.revocationEndpoint
-            ?: throw AuthorizationException("Revocation endpoint not found in configuration.")
+        val endpoint =
+            request.config.revocationEndpoint
+                ?: throw AuthorizationException("Revocation endpoint not found in configuration.")
 
         return suspendCoroutine { continuation ->
             Napier.d("Performing token revocation via native URLSession to $endpoint")
@@ -176,7 +179,5 @@ actual class AuthorizationService actual constructor(private val context: () -> 
         }
     }
 
-    private fun String.urlEncoded(): String {
-        return this.replace("=", "%3D").replace("+", "%2B").replace("/", "%2F")
-    }
+    private fun String.urlEncoded(): String = this.replace("=", "%3D").replace("+", "%2B").replace("/", "%2F")
 }
