@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/yet300/AppAuth-Kotlin/compare/v1.0.0...v1.1.0) (2025-10-26)
+
+
+### Features
+
+* Upgrade kotlin-js-store yarn dependencies ([ffd33f5](https://github.com/yet300/AppAuth-Kotlin/commit/ffd33f5d54183079fc7b3ce424e86cd7c52e0afb))
+
 ## 1.0.0 (2025-08-24)
 
 
