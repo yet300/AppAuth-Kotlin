@@ -75,6 +75,15 @@ kotlin {
         androidMain.dependencies {
             implementation("net.openid:appauth:0.11.1")
         }
+
+        val androidUnitTest by getting {
+            dependencies {
+                implementation("org.robolectric:robolectric:4.15")
+                implementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+                implementation("io.mockk:mockk:1.13.8")
+                implementation("junit:junit:4.13.2")
+            }
+        }
     }
 }
 
@@ -93,6 +102,12 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+            // Ensure all unit tests run with Robolectric
+            all {
+                it.testLogging {
+                    events("passed", "skipped", "failed")
+                }
+            }
         }
     }
     namespace = MODULE_PACKAGE_NAME
