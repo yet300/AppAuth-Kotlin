@@ -15,7 +15,8 @@ class GrantTypeTest {
             config = createMinimalTestConfig(),
             clientId = TestConstants.TEST_CLIENT_ID,
             grantType = "authorization_code",
-            refreshToken = null
+            refreshToken = null,
+            redirectURL = TestConstants.TEST_REDIRECT_URI
         )
         assertNotNull(request)
     }

@@ -8,12 +8,14 @@ actual class TokenRequest internal constructor(
         clientId: String,
         grantType: String,
         refreshToken: String?,
+        redirectURL: String?,
     ) : this(
         net.openid.appauth.TokenRequest
             .Builder(config.android, clientId)
             .apply {
                 setGrantType(grantType)
                 refreshToken?.let { setRefreshToken(it) }
+                redirectURL?.let { setRedirectUri(android.net.Uri.parse(it)) }
             }.build(),
     )
 

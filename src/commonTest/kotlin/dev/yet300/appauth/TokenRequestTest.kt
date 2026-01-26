@@ -21,7 +21,8 @@ class TokenRequestTest {
             config = config,
             clientId = "test-client-id",
             grantType = "authorization_code",
-            refreshToken = null
+            refreshToken = null,
+            redirectURL = "com.example.app:/oauth2redirect"
         )
 
         assertNotNull(request)

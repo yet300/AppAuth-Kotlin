@@ -4,6 +4,7 @@ package dev.yet300.appauth
 
 import AppAuth.OIDTokenRequest
 import kotlinx.cinterop.ExperimentalForeignApi
+import platform.Foundation.NSURL
 
 actual class TokenRequest internal constructor(
     internal val ios: OIDTokenRequest,
@@ -13,12 +14,13 @@ actual class TokenRequest internal constructor(
         clientId: String,
         grantType: String,
         refreshToken: String?,
+        redirectURL: String?,
     ) : this(
         OIDTokenRequest(
             configuration = config.ios,
             grantType = grantType,
             authorizationCode = null,
-            redirectURL = null,
+            redirectURL = redirectURL?.let { NSURL.URLWithString(it) },
             clientID = clientId,
             clientSecret = null,
             scope = null,

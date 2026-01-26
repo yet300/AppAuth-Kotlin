@@ -123,7 +123,8 @@ class TokenRequestWrapperTest {
             config = config,
             clientId = "test-client",
             grantType = "authorization_code",
-            refreshToken = null
+            refreshToken = null,
+            redirectURL = "com.example.app:/oauth2redirect"
         )
 
         assertNotNull(request.android)

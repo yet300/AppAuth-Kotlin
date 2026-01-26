@@ -45,12 +45,14 @@ fun createTestAuthorizationRequest(
  */
 fun createAuthCodeTokenRequest(
     config: AuthorizationServiceConfiguration = createMinimalTestConfig(),
-    clientId: String = "test-client-id"
+    clientId: String = "test-client-id",
+    redirectURL: String = TestConstants.TEST_REDIRECT_URI
 ) = TokenRequest(
     config = config,
     clientId = clientId,
     grantType = "authorization_code",
-    refreshToken = null
+    refreshToken = null,
+    redirectURL = redirectURL
 )
 
 /**
