@@ -5,7 +5,9 @@ package dev.yet300.appauth
 import AppAuth.OIDTokenRequest
 import kotlinx.cinterop.ExperimentalForeignApi
 
-actual class TokenRequest internal constructor(internal val ios: OIDTokenRequest) {
+actual class TokenRequest internal constructor(
+    internal val ios: OIDTokenRequest,
+) {
     actual constructor(
         config: AuthorizationServiceConfiguration,
         clientId: String,
@@ -27,8 +29,8 @@ actual class TokenRequest internal constructor(internal val ios: OIDTokenRequest
     )
 
     @OptIn(ExperimentalForeignApi::class)
-    override fun toString(): String {
-        return buildString {
+    override fun toString(): String =
+        buildString {
             appendLine("TokenRequest(")
             appendLine("  clientId: ${ios.clientID()}")
             appendLine("  grantType: ${ios.grantType()}")
@@ -41,5 +43,4 @@ actual class TokenRequest internal constructor(internal val ios: OIDTokenRequest
             appendLine("    authorizationEndpoint: ${ios.configuration().authorizationEndpoint().absoluteString}")
             appendLine(")")
         }
-    }
 }

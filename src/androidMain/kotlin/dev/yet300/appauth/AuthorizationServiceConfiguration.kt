@@ -19,7 +19,6 @@ actual class AuthorizationServiceConfiguration private constructor(
     val android: net.openid.appauth.AuthorizationServiceConfiguration,
     actual val revocationEndpoint: String?,
 ) {
-
     actual constructor(
         authorizationEndpoint: String,
         tokenEndpoint: String,

@@ -1,19 +1,24 @@
 package dev.yet300.appauth
 
-actual class TokenRequest internal constructor(internal val android: net.openid.appauth.TokenRequest) {
+actual class TokenRequest internal constructor(
+    internal val android: net.openid.appauth.TokenRequest,
+) {
     actual constructor(
         config: AuthorizationServiceConfiguration,
         clientId: String,
         grantType: String,
         refreshToken: String?,
     ) : this(
-        net.openid.appauth.TokenRequest.Builder(config.android, clientId).apply {
-            setGrantType(grantType)
-            refreshToken?.let { setRefreshToken(it) }
-        }.build(),
+        net.openid.appauth.TokenRequest
+            .Builder(config.android, clientId)
+            .apply {
+                setGrantType(grantType)
+                refreshToken?.let { setRefreshToken(it) }
+            }.build(),
     )
-    override fun toString(): String {
-        return buildString {
+
+    override fun toString(): String =
+        buildString {
             appendLine("TokenRequest(")
             appendLine("  clientId: ${android.clientId}")
             appendLine("  grantType: ${android.grantType}")
@@ -26,5 +31,4 @@ actual class TokenRequest internal constructor(internal val android: net.openid.
             appendLine("    authEndpoint: ${android.configuration.authorizationEndpoint}")
             appendLine(")")
         }
-    }
 }

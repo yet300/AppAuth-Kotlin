@@ -1,11 +1,12 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
-    kotlin("multiplatform") version "2.2.21-RC"
+    kotlin("multiplatform") version "2.3.0"
     id("com.android.library")
-    id("io.github.frankois944.spmForKmp") version "1.0.0-Beta07"
-    id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
+    id("io.github.frankois944.spmForKmp") version "1.4.7"
+    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
     id("org.jetbrains.kotlinx.kover") version "0.6.1"
+    id("com.vanniktech.maven.publish") version "0.30.0"
     `maven-publish`
     signing
 }
@@ -31,7 +32,7 @@ kover {
 
 kotlin {
     androidTarget {
-        publishLibraryVariants()
+        publishLibraryVariants("release")
     }
 
     js(IR) {
@@ -58,7 +59,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation("io.ktor:ktor-utils:3.3.0")
+            implementation("io.ktor:ktor-utils:3.4.0")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
             implementation("io.github.aakira:napier:2.7.1") // or latest
         }
@@ -82,6 +83,15 @@ kotlin {
         androidMain.dependencies {
             implementation("net.openid:appauth:0.11.1")
         }
+
+        val androidUnitTest by getting {
+            dependencies {
+                implementation("org.robolectric:robolectric:4.15")
+                implementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+                implementation("io.mockk:mockk:1.13.8")
+                implementation("junit:junit:4.13.2")
+            }
+        }
     }
 }
 
@@ -101,6 +111,12 @@ android {
         unitTests {
             isIncludeAndroidResources = true
             isReturnDefaultValues = true
+            // Ensure all unit tests run with Robolectric
+            all {
+                it.testLogging {
+                    events("passed", "skipped", "failed")
+                }
+            }
         }
     }
     namespace = MODULE_PACKAGE_NAME
@@ -126,7 +142,9 @@ swiftPackageConfig {
 }
 
 ktlint {
-    version.set("0.50.0")
+    filter {
+        exclude("*.gradle.kts")
+    }
 }
 
 fun SigningExtension.whenRequired(block: () -> Boolean) {
@@ -137,77 +155,50 @@ val javadocJar by tasks.creating(Jar::class) {
     archiveClassifier.value("javadoc")
 }
 
-publishing {
-    val PUBLISH_NAME: String by project
+mavenPublishing {
     val PUBLISH_DESCRIPTION: String by project
     val PUBLISH_URL: String by project
-    val POM_DEVELOPER_ID: String by project
-    val POM_DEVELOPER_NAME: String by project
-    val POM_DEVELOPER_EMAIL: String by project
+
     val PUBLISH_SCM_URL: String by project
     val PUBLISH_SCM_CONNECTION: String by project
     val PUBLISH_SCM_DEVELOPERCONNECTION: String by project
 
-    repositories {
-        // GitHub Packages (default)
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/yet300/AppAuth-Kotlin")
-            credentials {
-                username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
-                password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
+
+    signAllPublications()
+
+    coordinates(MODULE_PACKAGE_NAME, MODULE_NAME, MODULE_VERSION_NUMBER)
+
+    pom {
+        name.set(MODULE_NAME)
+        description.set(PUBLISH_DESCRIPTION)
+        url.set(PUBLISH_URL)
+
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("http://opensource.org/licenses/MIT")
+                distribution.set("repo")
             }
         }
 
-        // Maven Central (OSSRH) - uncomment when ready to deploy to Maven Central
-        // maven {
-        //     name = "OSSRH"
-        //     url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-        //     credentials {
-        //         username = project.findProperty("ossrhUsername") as String? ?: System.getenv("OSSRH_USERNAME")
-        //         password = project.findProperty("ossrhPassword") as String? ?: System.getenv("OSSRH_PASSWORD")
-        //     }
-        // }
-        // maven {
-        //     name = "OSSRHSnapshot"
-        //     url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-        //     credentials {
-        //         username = project.findProperty("ossrhUsername") as String? ?: System.getenv("OSSRH_USERNAME")
-        //         password = project.findProperty("ossrhPassword") as String? ?: System.getenv("OSSRH_PASSWORD")
-        //     }
-        // }
-    }
-
-    publications.all {
-        this as MavenPublication
-
-        artifact(javadocJar)
-
-        pom {
-            name.set(PUBLISH_NAME)
-            description.set(PUBLISH_DESCRIPTION)
-            url.set(PUBLISH_URL)
-
-            licenses {
-                license {
-                    name.set("MIT License")
-                    url.set("http://opensource.org/licenses/MIT")
-                }
+        developers {
+            developer {
+                id.set("trykovyura")
+                name.set("Yuri")
+                url.set("https://github.com/trykovyura")
             }
-
-            developers {
-                developer {
-                    id.set(POM_DEVELOPER_ID)
-                    name.set(POM_DEVELOPER_NAME)
-                    email.set(POM_DEVELOPER_EMAIL)
-                }
+            developer {
+                id.set("yet300")
+                name.set("Ruslan")
+                url.set("https://github.com/yet300")
             }
+        }
 
-            scm {
-                url.set(PUBLISH_SCM_URL)
-                connection.set(PUBLISH_SCM_CONNECTION)
-                developerConnection.set(PUBLISH_SCM_DEVELOPERCONNECTION)
-            }
+        scm {
+            url.set(PUBLISH_SCM_URL)
+            connection.set(PUBLISH_SCM_CONNECTION)
+            developerConnection.set(PUBLISH_SCM_DEVELOPERCONNECTION)
         }
     }
 }

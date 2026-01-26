@@ -2,7 +2,9 @@ package dev.yet300.appauth
 
 import android.net.Uri
 
-actual class AuthorizationRequest private constructor(internal val android: net.openid.appauth.AuthorizationRequest) {
+actual class AuthorizationRequest private constructor(
+    internal val android: net.openid.appauth.AuthorizationRequest,
+) {
     actual constructor(
         config: AuthorizationServiceConfiguration,
         clientId: String,
@@ -11,18 +13,19 @@ actual class AuthorizationRequest private constructor(internal val android: net.
         redirectUri: String,
         additionalParameters: Map<String, String>?,
     ) : this(
-        net.openid.appauth.AuthorizationRequest.Builder(
-            config.android,
-            clientId,
-            responseType,
-            Uri.parse(redirectUri),
-        )
-            .setAdditionalParameters(additionalParameters)
+        net.openid.appauth.AuthorizationRequest
+            .Builder(
+                config.android,
+                clientId,
+                responseType,
+                Uri.parse(redirectUri),
+            ).setAdditionalParameters(additionalParameters)
             .setScopes(scopes)
             .build(),
     )
-    override fun toString(): String {
-        return buildString {
+
+    override fun toString(): String =
+        buildString {
             appendLine("AuthorizationRequest(")
             appendLine("  clientId: ${android.clientId}")
             appendLine("  scope: ${android.scope ?: "None"}")
@@ -34,5 +37,4 @@ actual class AuthorizationRequest private constructor(internal val android: net.
             appendLine("    tokenEndpoint: ${android.configuration.tokenEndpoint}")
             appendLine(")")
         }
-    }
 }

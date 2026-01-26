@@ -157,3 +157,6 @@ swiftpackage
 
 # Environment variables for deployment
 .env
+.gradle
+build
+SPM

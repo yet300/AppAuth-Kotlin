@@ -9,7 +9,9 @@ expect class AuthorizationServiceContext
  * It provides methods for performing authorization, token exchange, and session management.
  * This class is a KMP wrapper around the native AppAuth libraries.
  */
-expect class AuthorizationService(context: () -> AuthorizationServiceContext) {
+expect class AuthorizationService(
+    context: () -> AuthorizationServiceContext,
+) {
     /**
      * Performs an authorization request to the authorization server.
      * This typically involves opening a browser or a custom tab for the user to sign in.
@@ -96,6 +98,7 @@ expect class AuthorizationResponse {
     val idToken: String?
     val authorizationCode: String?
     val scope: String?
+
     fun createTokenExchangeRequest(): TokenRequest
 }
 
