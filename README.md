@@ -15,34 +15,11 @@ The AppAuth-Kotlin SDK is a Kotlin-first SDK for AppAuth. It's API is similar to
 To install simply add to your common sourceset in the build gradle:
 
 ```kotlin
-implementation("dev.yet300:appauth-kotlin:0.1.2")
+implementation("io.github.yet300:appauth-kotlin:0.1.2") 
 ```
 
-### Snapshot Release
 
-For the latest development version:
 
-```kotlin
-implementation("dev.yet300:appauth-kotlin:0.1.3-SNAPSHOT")
-```
-
-### Repository Configuration
-
-Since this is published to GitHub Packages, you may need to add the repository to your `settings.gradle.kts`:
-
-```kotlin
-dependencyResolutionManagement {
-    repositories {
-        maven {
-            url = uri("https://maven.pkg.github.com/yet300/AppAuth-Kotlin")
-            credentials {
-                username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
-                password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
-            }
-        }
-    }
-}
-```
 
 ### Import Statement
 
