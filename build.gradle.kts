@@ -1,10 +1,10 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
-    kotlin("multiplatform") version "2.2.21"
+    kotlin("multiplatform") version "2.3.0"
     id("com.android.library")
-    id("io.github.frankois944.spmForKmp") version "1.0.0"
-    id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
+    id("io.github.frankois944.spmForKmp") version "1.4.7"
+    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
     id("org.jetbrains.kotlinx.kover") version "0.6.1"
     `maven-publish`
     signing
@@ -58,7 +58,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation("io.ktor:ktor-utils:3.3.0")
+            implementation("io.ktor:ktor-utils:3.4.0")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
             implementation("io.github.aakira:napier:2.7.1") // or latest
         }
