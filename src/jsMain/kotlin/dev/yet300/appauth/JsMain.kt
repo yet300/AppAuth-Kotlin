@@ -56,6 +56,7 @@ actual class TokenRequest actual constructor(
     clientId: String,
     grantType: String,
     refreshToken: String?,
+    redirectURL: String?,
 )
 
 actual class TokenResponse {
