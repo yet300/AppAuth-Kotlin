@@ -6,6 +6,7 @@ plugins {
     id("io.github.frankois944.spmForKmp") version "1.4.7"
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
     id("org.jetbrains.kotlinx.kover") version "0.6.1"
+    id("com.vanniktech.maven.publish") version "0.30.0"
     `maven-publish`
     signing
 }
@@ -31,7 +32,7 @@ kover {
 
 kotlin {
     androidTarget {
-        publishLibraryVariants()
+        publishLibraryVariants("release")
     }
 
     js(IR) {
@@ -146,77 +147,50 @@ val javadocJar by tasks.creating(Jar::class) {
     archiveClassifier.value("javadoc")
 }
 
-publishing {
-    val PUBLISH_NAME: String by project
+mavenPublishing {
     val PUBLISH_DESCRIPTION: String by project
     val PUBLISH_URL: String by project
-    val POM_DEVELOPER_ID: String by project
-    val POM_DEVELOPER_NAME: String by project
-    val POM_DEVELOPER_EMAIL: String by project
+
     val PUBLISH_SCM_URL: String by project
     val PUBLISH_SCM_CONNECTION: String by project
     val PUBLISH_SCM_DEVELOPERCONNECTION: String by project
 
-    repositories {
-        // GitHub Packages (default)
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/yet300/AppAuth-Kotlin")
-            credentials {
-                username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
-                password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
+
+    signAllPublications()
+
+    coordinates(MODULE_PACKAGE_NAME, MODULE_NAME, MODULE_VERSION_NUMBER)
+
+    pom {
+        name.set(MODULE_NAME)
+        description.set(PUBLISH_DESCRIPTION)
+        url.set(PUBLISH_URL)
+
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("http://opensource.org/licenses/MIT")
+                distribution.set("repo")
             }
         }
 
-        // Maven Central (OSSRH) - uncomment when ready to deploy to Maven Central
-        // maven {
-        //     name = "OSSRH"
-        //     url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-        //     credentials {
-        //         username = project.findProperty("ossrhUsername") as String? ?: System.getenv("OSSRH_USERNAME")
-        //         password = project.findProperty("ossrhPassword") as String? ?: System.getenv("OSSRH_PASSWORD")
-        //     }
-        // }
-        // maven {
-        //     name = "OSSRHSnapshot"
-        //     url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-        //     credentials {
-        //         username = project.findProperty("ossrhUsername") as String? ?: System.getenv("OSSRH_USERNAME")
-        //         password = project.findProperty("ossrhPassword") as String? ?: System.getenv("OSSRH_PASSWORD")
-        //     }
-        // }
-    }
-
-    publications.all {
-        this as MavenPublication
-
-        artifact(javadocJar)
-
-        pom {
-            name.set(PUBLISH_NAME)
-            description.set(PUBLISH_DESCRIPTION)
-            url.set(PUBLISH_URL)
-
-            licenses {
-                license {
-                    name.set("MIT License")
-                    url.set("http://opensource.org/licenses/MIT")
-                }
+        developers {
+            developer {
+                id.set("trykovyura")
+                name.set("Yuri")
+                url.set("https://github.com/trykovyura")
             }
-
-            developers {
-                developer {
-                    id.set(POM_DEVELOPER_ID)
-                    name.set(POM_DEVELOPER_NAME)
-                    email.set(POM_DEVELOPER_EMAIL)
-                }
+            developer {
+                id.set("yet300")
+                name.set("Ruslan")
+                url.set("https://github.com/yet300")
             }
+        }
 
-            scm {
-                url.set(PUBLISH_SCM_URL)
-                connection.set(PUBLISH_SCM_CONNECTION)
-                developerConnection.set(PUBLISH_SCM_DEVELOPERCONNECTION)
-            }
+        scm {
+            url.set(PUBLISH_SCM_URL)
+            connection.set(PUBLISH_SCM_CONNECTION)
+            developerConnection.set(PUBLISH_SCM_DEVELOPERCONNECTION)
         }
     }
 }
