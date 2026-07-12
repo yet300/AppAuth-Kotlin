@@ -13,3 +13,4 @@ pluginManagement {
     }
 }
 rootProject.name = "appauth-kotlin"
+include(":appauth-kotlin-testing")
