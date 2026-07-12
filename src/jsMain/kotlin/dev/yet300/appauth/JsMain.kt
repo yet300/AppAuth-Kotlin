@@ -69,20 +69,20 @@ actual class TokenResponse {
 
 actual class AuthorizationService actual constructor(
     context: () -> AuthorizationServiceContext,
-) {
-    actual suspend fun performAuthorizationRequest(request: AuthorizationRequest): AuthorizationResponse {
+) : AuthorizationClient {
+    actual override suspend fun performAuthorizationRequest(request: AuthorizationRequest): AuthorizationResponse {
         TODO("Not yet implemented")
     }
 
-    actual suspend fun performTokenRequest(request: TokenRequest): TokenResponse {
+    actual override suspend fun performTokenRequest(request: TokenRequest): TokenResponse {
         TODO("Not yet implemented")
     }
 
-    actual suspend fun performEndSessionRequest(request: EndSessionRequest) {
+    actual override suspend fun performEndSessionRequest(request: EndSessionRequest) {
         TODO("Not yet implemented")
     }
 
-    actual suspend fun performRevokeTokenRequest(request: RevokeTokenRequest) {
+    actual override suspend fun performRevokeTokenRequest(request: RevokeTokenRequest) {
         TODO("Not yet implemented")
     }
 }

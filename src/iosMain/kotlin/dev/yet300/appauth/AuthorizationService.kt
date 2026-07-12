@@ -33,12 +33,12 @@ internal fun String.base64Encoded(): String {
 @OptIn(ExperimentalForeignApi::class)
 actual class AuthorizationService actual constructor(
     private val context: () -> AuthorizationServiceContext,
-) {
+) : AuthorizationClient {
     private var session: OIDExternalUserAgentSessionProtocol? = null
 
     fun resumeExternalUserAgentFlow(url: NSURL): Boolean = session?.resumeExternalUserAgentFlowWithURL(url) == true
 
-    actual suspend fun performAuthorizationRequest(request: AuthorizationRequest): AuthorizationResponse =
+    actual override suspend fun performAuthorizationRequest(request: AuthorizationRequest): AuthorizationResponse =
         withContext(Dispatchers.Main) {
             Napier.d("🔐 Starting iOS performAuthorizationRequest")
             Napier.d("📤 AuthorizationRequest:\n$request")
@@ -70,7 +70,7 @@ actual class AuthorizationService actual constructor(
             }
         }
 
-    actual suspend fun performEndSessionRequest(request: EndSessionRequest) =
+    actual override suspend fun performEndSessionRequest(request: EndSessionRequest) =
         withContext(Dispatchers.Main) {
             Napier.d("🔐 Starting iOS performEndSessionRequest")
             Napier.d("📤 EndSessionRequest:\n$request")
@@ -102,7 +102,7 @@ actual class AuthorizationService actual constructor(
             }
         }
 
-    actual suspend fun performTokenRequest(request: TokenRequest): TokenResponse =
+    actual override suspend fun performTokenRequest(request: TokenRequest): TokenResponse =
         withContext(Dispatchers.Main) {
             Napier.d("🔐 Starting iOS performTokenRequest")
             Napier.d("📤 TokenRequest:\n$request")
@@ -128,7 +128,7 @@ actual class AuthorizationService actual constructor(
             }
         }
 
-    actual suspend fun performRevokeTokenRequest(request: RevokeTokenRequest) {
+    actual override suspend fun performRevokeTokenRequest(request: RevokeTokenRequest) {
         val endpoint =
             request.config.revocationEndpoint
                 ?: throw AuthorizationException("Revocation endpoint not found in configuration.")
