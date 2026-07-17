@@ -69,6 +69,13 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
         }
 
+        androidUnitTest.dependencies {
+            implementation("io.mockk:mockk:1.14.6")
+            implementation("androidx.test:core:1.7.0")
+            implementation("org.robolectric:robolectric:4.16")
+            implementation("androidx.activity:activity:1.11.0")
+        }
+
         jsMain.dependencies {}
 
         iosMain.dependencies {}
@@ -103,6 +110,7 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+            isReturnDefaultValues = true
             // Ensure all unit tests run with Robolectric
             all {
                 it.testLogging {

@@ -1,5 +1,7 @@
 package dev.yet300.appauth
 
+import android.net.Uri
+
 actual class TokenRequest internal constructor(
     internal val android: net.openid.appauth.TokenRequest,
 ) {
@@ -8,12 +10,14 @@ actual class TokenRequest internal constructor(
         clientId: String,
         grantType: String,
         refreshToken: String?,
+        redirectURL: String?,
     ) : this(
         net.openid.appauth.TokenRequest
             .Builder(config.android, clientId)
             .apply {
                 setGrantType(grantType)
                 refreshToken?.let { setRefreshToken(it) }
+                redirectURL?.let { setRedirectUri(Uri.parse(it)) }
             }.build(),
     )
 

@@ -21,7 +21,7 @@ import kotlin.test.assertEquals
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
-class AuthorizationServiceConfigurationTest {
+class AuthorizationServiceConfigurationTestAndroid {
 
     @Test
     fun testConfigurationConstruction() = runTest {

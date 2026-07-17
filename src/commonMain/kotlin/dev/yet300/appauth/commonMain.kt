@@ -107,6 +107,7 @@ expect class TokenRequest(
     clientId: String,
     grantType: String,
     refreshToken: String? = null,
+    redirectURL: String? = null,
 )
 
 expect class TokenResponse {
