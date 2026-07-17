@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.1.0](https://github.com/yet300/AppAuth-Kotlin/compare/v1.0.0...v1.1.0) (2026-07-17)
+
+
+### Features
+
+* add appauth-kotlin-testing module with FakeAuthorizationClient ([c526116](https://github.com/yet300/AppAuth-Kotlin/commit/c52611668bd1dcd2769a3f99c3b0adfc3870f3b6))
+* add appauth-kotlin-testing module with FakeAuthorizationClient ([0a70a15](https://github.com/yet300/AppAuth-Kotlin/commit/0a70a1546f59bc13ba4df1de72de9c86c5db679e))
+* add AuthorizationClient interface for testable OAuth contracts ([58afde2](https://github.com/yet300/AppAuth-Kotlin/commit/58afde2e95df26402139e15658c72f846ed92ed9))
+* add AuthorizationClient interface for testable OAuth contracts ([9b2632a](https://github.com/yet300/AppAuth-Kotlin/commit/9b2632a0b30be5dd2a11a0a9e3a0e33b63f234cf))
+* add AuthorizationServiceConfigurationProvider for injectable OIDC discovery ([0ee06c5](https://github.com/yet300/AppAuth-Kotlin/commit/0ee06c5ce1ed3310c446a441bd1dd4881b11a191))
+* add AuthorizationServiceConfigurationProvider for injectable OIDC discovery ([a215fab](https://github.com/yet300/AppAuth-Kotlin/commit/a215fab50f9e4ff8906218513566a8956b998f23))
+* split AuthorizationClient into headless and interactive interfaces ([4e0fe39](https://github.com/yet300/AppAuth-Kotlin/commit/4e0fe397a51717d2bd39ea9b376e2b34add48a32))
+* split AuthorizationClient into TokenOperations and InteractiveAuthorization ([895946b](https://github.com/yet300/AppAuth-Kotlin/commit/895946bd7ec15d0969c2629b099e1c84c1868c8b))
+* Upgrade kotlin-js-store yarn dependencies ([ffd33f5](https://github.com/yet300/AppAuth-Kotlin/commit/ffd33f5d54183079fc7b3ce424e86cd7c52e0afb))
+
+
+### Bug Fixes
+
+* unit tests ([a39f50e](https://github.com/yet300/AppAuth-Kotlin/commit/a39f50e2f74837713a79c75741f823c9d7a8fa8e))
+* unit tests ([c850479](https://github.com/yet300/AppAuth-Kotlin/commit/c850479a57065b544ed4554311ec4e943ee075a1))
+
 ## 1.0.0 (2025-08-24)
 
 
