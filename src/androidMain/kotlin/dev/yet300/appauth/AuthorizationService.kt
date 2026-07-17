@@ -21,7 +21,7 @@ import kotlin.coroutines.suspendCoroutine
 
 actual class AuthorizationService private constructor(
     private val android: net.openid.appauth.AuthorizationService,
-) {
+) : AuthorizationClient {
     actual constructor(context: () -> AuthorizationServiceContext) : this(
         net.openid.appauth.AuthorizationService(
             context(),
@@ -43,7 +43,7 @@ actual class AuthorizationService private constructor(
 
     private lateinit var launcher: ActivityResultLauncher<Intent>
 
-    actual suspend fun performAuthorizationRequest(request: AuthorizationRequest): AuthorizationResponse {
+    actual override suspend fun performAuthorizationRequest(request: AuthorizationRequest): AuthorizationResponse {
         // Show the request details
         Napier.d("📤 Starting AuthorizationRequest:\n$request")
         // if a previous request is still pending then wait for it to finish
@@ -71,7 +71,7 @@ actual class AuthorizationService private constructor(
         }
     }
 
-    actual suspend fun performEndSessionRequest(request: EndSessionRequest) {
+    actual override suspend fun performEndSessionRequest(request: EndSessionRequest) {
         // if a previous request is still pending then wait for it to finish
         // Show the request details
         Napier.d("📤 Starting EndSessionRequest:\n$request")
@@ -101,7 +101,7 @@ actual class AuthorizationService private constructor(
         }
     }
 
-    actual suspend fun performTokenRequest(request: TokenRequest): TokenResponse =
+    actual override suspend fun performTokenRequest(request: TokenRequest): TokenResponse =
         suspendCoroutine { cont ->
             Napier.d("🔐 Starting performTokenRequest")
             Napier.d("📤 TokenRequest:\n$request")
@@ -118,7 +118,7 @@ actual class AuthorizationService private constructor(
             }
         }
 
-    actual suspend fun performRevokeTokenRequest(request: RevokeTokenRequest) =
+    actual override suspend fun performRevokeTokenRequest(request: RevokeTokenRequest) =
         withContext(Dispatchers.IO) {
             val endpoint =
                 request.config.revocationEndpoint

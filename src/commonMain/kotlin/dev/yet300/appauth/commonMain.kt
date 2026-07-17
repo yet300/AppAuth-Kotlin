@@ -11,7 +11,7 @@ expect class AuthorizationServiceContext
  */
 expect class AuthorizationService(
     context: () -> AuthorizationServiceContext,
-) {
+) : AuthorizationClient {
     /**
      * Performs an authorization request to the authorization server.
      * This typically involves opening a browser or a custom tab for the user to sign in.
@@ -20,7 +20,7 @@ expect class AuthorizationService(
      * @return An [AuthorizationResponse] containing the authorization code and other details.
      * @throws AuthorizationException if the authorization flow fails.
      */
-    suspend fun performAuthorizationRequest(request: AuthorizationRequest): AuthorizationResponse
+    suspend override fun performAuthorizationRequest(request: AuthorizationRequest): AuthorizationResponse
 
     /**
      * Performs an end-session request to the authorization server to log the user out.
@@ -29,7 +29,7 @@ expect class AuthorizationService(
      * @param request The [EndSessionRequest] containing details for the logout flow.
      * @throws AuthorizationException if the end-session flow fails.
      */
-    suspend fun performEndSessionRequest(request: EndSessionRequest)
+    suspend override fun performEndSessionRequest(request: EndSessionRequest)
 
     /**
      * Performs a token request to exchange an authorization code or refresh token for new tokens.
@@ -38,7 +38,7 @@ expect class AuthorizationService(
      * @return A [TokenResponse] containing the new access, refresh, and ID tokens.
      * @throws AuthorizationException if the token exchange fails.
      */
-    suspend fun performTokenRequest(request: TokenRequest): TokenResponse
+    suspend override fun performTokenRequest(request: TokenRequest): TokenResponse
 
     /**
      * Performs a token revocation request as per RFC 7009.
@@ -47,7 +47,7 @@ expect class AuthorizationService(
      * @param request The [RevokeTokenRequest] containing the token to be revoked.
      * @throws AuthorizationException if the revocation fails.
      */
-    suspend fun performRevokeTokenRequest(request: RevokeTokenRequest)
+    suspend override fun performRevokeTokenRequest(request: RevokeTokenRequest)
 }
 
 /**
